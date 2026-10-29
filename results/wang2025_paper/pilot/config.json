@@ -1,0 +1,49 @@
+{
+  "reference": "Wang 2025 ANN-hard, Eqs. (1)-(9); TensorFlow mathematical implementation",
+  "source": "results/long10ms_data/trajectories.npz",
+  "training_pairs": "results/long10ms_data/training_pairs.npz",
+  "output": "results/wang2025_paper",
+  "seed": 11,
+  "gamma": 0.1,
+  "dt": 2e-06,
+  "horizon": 0.01,
+  "layers": [
+    11,
+    1600,
+    800,
+    400,
+    9
+  ],
+  "target": "direct raw G(Y_next), not a residual; no temperature or pressure output",
+  "loss": "mean absolute error in raw G-space",
+  "activation": "exact GELU",
+  "optimizer": "bias-corrected Adam, betas 0.9/0.999, epsilon 1e-8 outside sqrt(v_hat)",
+  "stages": [
+    {
+      "epochs": 2500,
+      "batch_size": 1024,
+      "learning_rate": 0.0001
+    },
+    {
+      "epochs": 2500,
+      "batch_size": 131072,
+      "learning_rate": 1e-05
+    }
+  ],
+  "gradient_clipping": false,
+  "decoder_clipping": false,
+  "element_projection": "paper direct 3x3 solve, no floor or positivity QP",
+  "temperature": "Cantera HPY using current T/P/Y enthalpy and corrected next Y",
+  "assumptions": {
+    "output_dimension": "9 species per Eq.(2); paper text also says 11 output neurons, unresolved author inconsistency",
+    "input_scaling": "train-only z-score, ddof0; raw T, linear P(atm), literal Box-Cox Y",
+    "output_scaling": "none, preserving stated G-space L1 objective",
+    "initialization": "PyTorch Linear default uniform distribution; backend random streams differ",
+    "gelu": "exact, matching PyTorch nn.GELU default; legacy repository settings instead use mygelu",
+    "invalid_states": "reject undefined inverse, singular projection, negative corrected Y, failed thermal recovery; no clipping",
+    "adam_state_between_stages": "retained; training source not released to confirm reset policy"
+  },
+  "intentional_data_exceptions": "keep existing data, mechanism, initial-condition splits, downsampling and dt=2us per user",
+  "author_repository_commit": "bc07e5a210ba357b8a5350b460a751a68a002174",
+  "active_models_unchanged_until_trained_and_evaluated": true
+}

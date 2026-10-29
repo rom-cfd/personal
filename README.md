@@ -11,6 +11,15 @@ is discarded during corrected inference. Current T,Y determine mixture enthalpy;
 the corrected next Y and this conserved enthalpy at fixed pressure determine
 next T. Composition alone does not determine temperature.
 
+The requested 2025-paper alignment is a separate prepared model family:
+[implementation audit](WANG_IMPLEMENTATION_AUDIT.md),
+[configuration](configs/wang2025_paper.json), and `kinetics.wang_paper_study`.
+It inputs T/P/G and outputs only nine direct next-G species values, with
+1600/800/400 GELU, raw G-space L1 and the paper's two-stage training schedule.
+The current 10-update pilot is undertrained and is not an active model.
+Full training requires the agreed compute budget; unpublished author details
+are explicit assumptions, so bit-identical reproduction is not claimed.
+
 Latest 100-member / 10 ms study: [LONG_COMMITTEE_REPORT.md](LONG_COMMITTEE_REPORT.md); [training downsampling audit](LONG_DATA_REPORT.md).
 
 Latest committee comparison and literature brief: [COMMITTEE_REPORT.md](COMMITTEE_REPORT.md), [LITERATURE_RESEARCH_BRIEF.md](LITERATURE_RESEARCH_BRIEF.md).
