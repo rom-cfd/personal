@@ -208,3 +208,20 @@ python -m kinetics.wang_report
 Use a new output path for repeated experiments. Results and limitations are in
 [WANG_HARD_REPORT.md](WANG_HARD_REPORT.md). The plotting command excludes t=0
 from log-axis display only; full-time error metrics retain the original data.
+
+## Best a priori single member with the same Wang correction
+
+`single_apriori_study` ranks all 100 frozen models on all 90,000 validation
+one-step pairs using the existing physical-unit score, then freezes one seed
+before any rollout or test assessment. The single-member runtime calls only
+that network at every step, with the same Wang correction and no ensemble/ODE
+fallback. Previously saved mean100/medoid100 traces are the controls.
+
+```bash
+python -m kinetics.single_apriori_study
+python -m kinetics.single_apriori_report
+```
+
+Read [SINGLE_MODEL_REPORT.md](SINGLE_MODEL_REPORT.md) for selection details,
+complete/failing trajectories, ignition and full-profile comparisons. New runs
+require a new `--output`; the report accepts `--root` and `--report`.
