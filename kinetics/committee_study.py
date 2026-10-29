@@ -33,6 +33,7 @@ def run_rollouts(p,truth,pressures,ids,matrix,dt,progress_callback=None):
                 switched=switched,valid_count=int(diag.get('valid_count',np.full(len(live),-1))[j]),
                 spread=float(diag.get('spread',np.full(len(live),np.nan))[j]),
                 central_cost=float(diag.get('central_cost',np.full(len(live),np.nan))[j]),
+                correction_norm=float(diag.get('correction_norm',np.full(len(live),np.nan))[j]),
                 current_temperature=float(state[k,0]),predicted_temperature=float(out[0]),accepted=valid))
             if not valid:
                 active[k]=False;reasons[k]='no_valid_prediction';continue

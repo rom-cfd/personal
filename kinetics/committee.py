@@ -59,6 +59,35 @@ def choose_medoid(candidates,metric,kind='scaled',batch_chunk=64):
     return out,choice,dict(valid_count=count,spread=spread,central_cost=best_cost)
 
 
+def choose_min_correction(raw, corrected, metric):
+    """Select the valid candidate with minimum train-scaled RMS correction.
+
+    Measures corrected minus ANN proposal in T and nine Y coordinates, NOT
+    next minus current state. Ties follow member order; no valid member fails.
+    Proposals here already have the common decoder domain guard applied.
+    """
+    raw, corrected = np.asarray(raw), np.asarray(corrected)
+    if raw.shape != corrected.shape or raw.ndim != 3 or raw.shape[-1] != 10:
+        raise ValueError('expected matching (members, batch, 10) proposals')
+    valid = np.isfinite(raw).all(axis=-1) & np.isfinite(corrected).all(axis=-1)
+    scales = np.r_[metric['temperature_scale'], metric['species_scale']]
+    if not np.isfinite(scales).all() or np.any(scales <= 0):
+        raise ValueError('finite positive training scales required')
+    with np.errstate(over='ignore', invalid='ignore'):
+        costs = np.sqrt(np.mean(((corrected - raw) / scales)**2, axis=-1))
+    valid &= np.isfinite(costs)
+    costs = np.where(valid, costs, np.inf)
+    count = valid.sum(axis=0)
+    choice = np.where(count > 0, np.argmin(costs, axis=0), -1)
+    out = np.full(corrected.shape[1:], np.nan)
+    selected_cost = np.full(len(choice), np.nan)
+    live = np.flatnonzero(count)
+    out[live] = corrected[choice[live], live]
+    selected_cost[live] = costs[choice[live], live]
+    return out, choice, dict(valid_count=count, correction_norm=selected_cost,
+        spread=np.full(len(choice), np.nan), central_cost=np.full(len(choice), np.nan))
+
+
 class Committee:
     def __init__(self,paths,seeds,metric,rule='medoid',distance='scaled',collect_mean_diagnostics=True,physics_backend='cantera'):
         if not len(paths) or len(paths)!=len(seeds):raise ValueError('empty or mismatched committee')
@@ -129,13 +158,16 @@ class Committee:
             return out
         start=time.perf_counter();candidates=self.repair(raw,x)
         self.timing['candidate_repair']+=time.perf_counter()-start
-        if self.rule=='mean_after_repair' and not self.collect_mean_diagnostics:
+        if self.rule=='min_correction':
+            start=time.perf_counter();center,choice,stats=choose_min_correction(raw,candidates,self.metric)
+            self.timing['selection']+=time.perf_counter()-start
+        elif self.rule=='mean_after_repair' and not self.collect_mean_diagnostics:
             center=None;choice=np.full(len(x),-1)
             stats=dict(valid_count=np.all(np.isfinite(candidates),axis=-1).sum(axis=0),spread=np.full(len(x),np.nan),central_cost=np.full(len(x),np.nan))
         else:
             start=time.perf_counter();center,choice,stats=choose_medoid(candidates,self.metric,self.distance)
             self.timing['selection']+=time.perf_counter()-start
-        if self.rule=='medoid':out=center
+        if self.rule in ('medoid','min_correction'):out=center
         elif self.rule=='single':out=candidates[0]
         elif self.rule=='mean_after_repair':
             valid=np.all(np.isfinite(candidates),axis=-1)
@@ -146,7 +178,7 @@ class Committee:
             self.timing['mean_repair']+=time.perf_counter()-began
         else:raise ValueError('unknown aggregation rule')
         selected=np.full(len(x),-1)
-        if self.rule in ('medoid','single'):
+        if self.rule in ('medoid','single','min_correction'):
             valid_choice=choice>=0;selected[valid_choice]=self.seeds[choice[valid_choice]]
         self.last_diagnostics=dict(selected_seed=selected,**stats)
         return out

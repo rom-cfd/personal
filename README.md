@@ -1,5 +1,23 @@
 # Nine-species hydrogen kinetics preprocessing study
 
+## Per-step minimum physics-correction selection
+
+`kinetics.min_correction_study` reuses the frozen ten-member gamma=.2/.5 tanh
+ensembles. At each self-fed timestep it corrects all proposals, then selects the
+valid candidate with the smallest train-scaled RMS change in T and nine Y values
+from its own ANN proposal. This measures the correction, not the change from the
+current state. The existing decoder guard precedes this measurement. No new
+training or ODE fallback is used. See [MIN_CORRECTION_REPORT.md](MIN_CORRECTION_REPORT.md)
+for comparisons, failure coverage and per-step member-selection figures.
+
+```bash
+/workspace/kinetics-venv/bin/python -m kinetics.min_correction_study
+/workspace/kinetics-venv/bin/python -m kinetics.min_correction_report
+```
+
+Repeat with a new `--output`; give the reporter the matching `--root` and a new
+`--report`. Existing weights, datasets and experiment outputs remain unchanged.
+
 ## Box–Cox preprocessing ablation: γ=0.2 and 0.5
 
 The `pre-process` experiment returns to the earlier **64/64/64 tanh** network.
