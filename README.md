@@ -1,5 +1,16 @@
 # Nine-species hydrogen kinetics preprocessing study
 
+Current active formulation: **next-state Y prediction with Wang hard correction**,
+as recorded in [configs/active_model.json](configs/active_model.json). The previous
+default remains `medoid100`; mean100 and the validation-selected singleton are
+also recorded. The signed physical-increment experiment is retained as an
+unsuccessful physics-off comparison in [DELTA_RAW_REPORT.md](DELTA_RAW_REPORT.md).
+
+In the active pipeline, the ANN also has a temperature output, but that output
+is discarded during corrected inference. Current T,Y determine mixture enthalpy;
+the corrected next Y and this conserved enthalpy at fixed pressure determine
+next T. Composition alone does not determine temperature.
+
 Latest 100-member / 10 ms study: [LONG_COMMITTEE_REPORT.md](LONG_COMMITTEE_REPORT.md); [training downsampling audit](LONG_DATA_REPORT.md).
 
 Latest committee comparison and literature brief: [COMMITTEE_REPORT.md](COMMITTEE_REPORT.md), [LITERATURE_RESEARCH_BRIEF.md](LITERATURE_RESEARCH_BRIEF.md).
@@ -225,3 +236,28 @@ python -m kinetics.single_apriori_report
 Read [SINGLE_MODEL_REPORT.md](SINGLE_MODEL_REPORT.md) for selection details,
 complete/failing trajectories, ignition and full-profile comparisons. New runs
 require a new `--output`; the report accepts `--root` and `--report`.
+
+## Signed physical increments with physics disabled
+
+The new target is `signed_boxcox(Y_next - Y_now)`, distinct from the older
+`boxcox(Y_next) - boxcox(Y_now)`. The signed transform is
+`sign(v) * abs(v)**0.1 / 0.1`; temperature increments are linearly standardized.
+All preprocessing statistics use training data only. The DNN predicts both
+delta T and delta Y from (T,P,Y), then adds them to the current state.
+
+```bash
+python -m kinetics.delta_training --config configs/delta100_raw.json
+python -m kinetics.delta_evaluation --root results/delta100_raw
+python -m kinetics.delta_target_diagnostics --root results/delta100_raw
+python -m kinetics.verify_delta --root results/delta100_raw
+python -m kinetics.delta_report --root results/delta100_raw
+```
+
+All 100 members are freshly trained with the previous architecture and member
+update budget. Single-member selection uses validation one-step physical error
+only. Raw mean/medoid include negative finite candidates; there is no clipping,
+normalization, element/enthalpy projection or chemistry fallback. Negative states
+continue to be fed back and are counted as violations. Numerical termination is
+separate from physical admissibility. Training/evaluation share a 30-minute CPU
+cap; no GPU/HPC is used. Prior datasets, weights and results remain unchanged.
+See [DELTA_RAW_REPORT.md](DELTA_RAW_REPORT.md) for results and limitations.

@@ -15,9 +15,9 @@ def clip_member_gradients(grads,clip=5.):
     return [g*tf.reshape(factor,[-1]+[1]*(len(g.shape)-1)) for g in grads]
 
 
-def train_group(spec,seeds,updates,x,y,cfg,deadline=float('inf'),progress=False):
+def train_group(spec,seeds,updates,x,y,cfg,deadline=float('inf'),progress=False,predictor_class=Predictor):
     if cfg['activation']!='tanh':raise ValueError('Grouped trainer currently supports tanh only')
-    started=time.perf_counter();members=[Predictor(spec,x,y,cfg,seed) for seed in seeds]
+    started=time.perf_counter();members=[predictor_class(spec,x,y,cfg,seed) for seed in seeds]
     first=members[0]
     for member in members[1:]:
         np.testing.assert_array_equal(first.train_features,member.train_features)
