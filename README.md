@@ -1,0 +1,191 @@
+# Nine-species hydrogen kinetics preprocessing study
+
+Latest 100-member / 10 ms study: [LONG_COMMITTEE_REPORT.md](LONG_COMMITTEE_REPORT.md); [training downsampling audit](LONG_DATA_REPORT.md).
+
+Latest committee comparison and literature brief: [COMMITTEE_REPORT.md](COMMITTEE_REPORT.md), [LITERATURE_RESEARCH_BRIEF.md](LITERATURE_RESEARCH_BRIEF.md).
+
+Latest augmentation and 0-D ignition results: [REFINEMENT_REPORT.md](REFINEMENT_REPORT.md).
+
+Cantera 3.2 + TensorFlow CPU 2.20 benchmark for H2/H/O/O2/OH/H2O/HO2/H2O2/N2.
+The repository was empty: no original ANN, dataset or Box–Cox implementation was
+available. Gamma=0.1 is a new reference baseline, not a reproduced legacy model.
+
+## Reproduce
+
+Python 3.12 is used. Each cloud task is already isolated; use this checkout and do
+not create a Git worktree unless explicitly requested.
+
+```bash
+python3 -m venv /workspace/kinetics-venv
+/workspace/kinetics-venv/bin/python -m pip install -r requirements.lock.txt
+/workspace/kinetics-venv/bin/python -m pytest -q
+MPLCONFIGDIR=/tmp/kinetics-mpl XDG_CACHE_HOME=/tmp/kinetics-cache \
+  /workspace/kinetics-venv/bin/python -m kinetics.study --output results/reproduction
+/workspace/kinetics-venv/bin/python -m kinetics.analysis --output results/reproduction
+/workspace/kinetics-venv/bin/python -m kinetics.posteriori --study results/reproduction
+/workspace/kinetics-venv/bin/python -m kinetics.reference_resolution --study results/reproduction
+/workspace/kinetics-venv/bin/python -m kinetics.report --study results/reproduction --report REPRODUCTION_REPORT.md
+```
+
+The study refuses existing output paths and never overwrites datasets. To reuse
+an exact generated dataset, add `--dataset results/verified/dataset.npz`. The checksum
+is checked. Dataset configurations must match; defaults are in `configs/study.json`.
+No network or external services are needed after dependency installation. CPU
+thread counts are capped; no GPU/HPC jobs are submitted. The default training
+budget guard is 1800 wall seconds, checked every epoch (rollout/analysis overhead
+is additional). Final comparison has six methods and three seeds each.
+
+`kinetics.transforms.Transform` supports positive and odd signed variants and
+explicit inverse-domain failures. For this next-state study only nonnegative
+mass fractions enter a transform. The network learns a residual in transformed
+coordinates and reconstructs next T,Y; it does not learn physical signed rates.
+Temperature is scaled linearly; pressure is log-scaled. All fitted standardizers
+and epsilon statistics use training trajectories only. Read the research report
+for precise formulas, metrics, limits and measured outcomes.
+
+`Predictor.load('results/verified/models/boxcox_g0.1_seed11')` reloads a fitted model
+and preprocessing. Call `.predict(x)` on rows `[T, Y_H2, ..., Y_N2, P_Pa]`.
+The returned rows are `[T_next, Y_next...]` at dt=2 microseconds. Raw predictions
+are never silently clipped; NaN marks inverse-domain violations. Do not deploy
+these exploratory models as a chemistry integrator without further validation.
+
+Results include dataset/split metadata and SHA256, exact configuration, models,
+per-epoch histories, validation-only selection records, held-out predictions,
+physical metrics, concentration bins, conservation diagnostics, raw and repaired
+rollouts, timing, perturbation tests and figures. `results/study` is an interrupted
+pilot retained for provenance; `results/final` is superseded by `results/verified`, whose 18 saved models passed reload checks. The final report is [RESEARCH_REPORT.md](RESEARCH_REPORT.md).
+
+A posteriori evaluation is self-fed at fixed 2 us, without teacher forcing. It
+compares 0.4 ms and 2 ms full profiles and ignition timing against independently
+integrated Cantera reactors. A 0.2 us reference-only diagnostic refines ignition
+measurement; training, test and ANN step sizes stay 2 us. Incomplete profiles
+are excluded from full-horizon error and separately recorded as failures, with
+coverage and physical admissibility reported. In the original unconstrained study, all models fail the 2 ms physical
+admissibility criterion; no trained model is ready for use as a kinetics integrator.
+
+## Perturbation refinement: current milestone
+
+Read [REFINEMENT_REPORT.md](REFINEMENT_REPORT.md) for the new study. The original
+research results remain in `results/verified`; augmented data/models are in
+`results/refinement`, equal-update unaugmented controls in
+`results/refinement_controls`, and fixed held-out evaluations in
+`results/refinement_test`. Training-only perturbations receive fresh Cantera
+labels at the same fixed 2 us timestep. An optional common projection/enthalpy
+closure is evaluated separately from raw ANN output.
+
+The agreed validation ignition target was reached across three seeds. The
+validation-selected single model uses gamma=.1 and seed 33. On held-out ICs it
+classifies ignition/no-ignition correctly in 17/18 cases with median ignition
+delay error 13.0%, and physically completes all 18 trajectories over 2 ms. It
+misses one long induction case. This is progress on the benchmark, not validation
+for use in CFD or evidence that augmentation alone fixes raw ANN instability.
+
+To reproduce without overwriting results, copy `configs/refinement.json`, change
+its `output` to `results/repeat_refinement`, and run with the venv interpreter:
+
+```bash
+python -m kinetics.refinement --config configs/repeat_refinement.json
+python -m kinetics.refinement_controls --config configs/repeat_refinement.json \
+  --root results/repeat_refinement --output results/repeat_controls
+python -m kinetics.ensemble_validation --root results/repeat_refinement
+python -m kinetics.refinement_test --root results/repeat_refinement \
+  --controls results/repeat_controls --output results/repeat_test
+```
+
+The test runner refuses existing output directories and requires the validation
+family to meet the configured ignition target first. Its frozen selection is
+written before reading held-out data. `kinetics.refinement_report` regenerates
+the current milestone report/figures from the current default result paths.
+
+```python
+from kinetics.study import Predictor
+from kinetics.physics import PhysicalPredictor
+model = PhysicalPredictor(Predictor.load(
+    'results/refinement/models/final_moderate_boxcox_g0.1_seed33'))
+# x rows: [T_K, Y_H2, Y_H, Y_O, Y_O2, Y_OH, Y_H2O, Y_HO2, Y_H2O2, Y_N2, P_Pa]
+# result rows: [T_next_K, next nine Y values], fixed dt=2e-6 s
+next_state = model.predict(x)
+```
+
+## Ten-member committee on matched-budget original data
+
+This experiment intentionally uses **no augmentation**. Every member retains the
+same 64/64/64 tanh architecture, Box–Cox gamma=.1, and 10,000-update budget. Seeds
+11/22/33 reuse the matched original controls; seven additional seeds complete ten.
+The committee total represents 100,000 updates, not a single-model training budget.
+
+```bash
+/workspace/kinetics-venv/bin/python -m kinetics.committee_study --config configs/committee.json
+/workspace/kinetics-venv/bin/python -m kinetics.committee_report
+```
+
+Existing result directories are refused. For reproduction, copy the JSON and
+change its output path; source data and three existing control models are reused.
+Medoid distance is selected using validation only, then frozen before test.
+
+```python
+from kinetics.committee import Committee
+model = Committee.load('results/committee_original/methods/medoid10_scaled.json')
+next_state = model.predict(x)  # x: [T_K, Y9, P_Pa], output: [T_next_K, Y9_next]
+representative_seeds = model.last_diagnostics['selected_seed']
+```
+
+This object already performs physical correction; no extra wrapper is required.
+Every member receives the same current state. An actual corrected candidate is
+chosen, not a coordinate median. There is no ODE fallback or hysteresis. If no
+candidate is valid, the output is NaN and the rollout fails explicitly.
+
+The ten-member mean and medoid share the same candidate correction for the main
+comparison. Legacy averaging-before-correction is a separate arm. On this test,
+the ten-member mean **after candidate correction** outperformed medoid selection.
+Read the report for full profiles, failures, switching, budgets and limitations.
+
+## 100 members and 10 ms: current run
+
+Fresh Cantera trajectories extend training, validation and test to **10 ms**.
+Sampling thins training INPUT TIMES only; every target stays exactly **2 us**
+ahead. Of 270,000 candidate training transitions, 8,815 are retained, including
+376 equilibrium anchors (4.3%, versus 80.5% in the dense training pool). Slow
+induction is protected by comparison with HP chemical equilibrium, not merely a
+small dT/dt. Validation/test autoregressive profiles keep every 2 us sample.
+
+All 100 models are newly trained on this data, with the same 64/64/64 architecture,
+Box–Cox gamma=.1 and 10,000 updates per member. The first ten form the nested
+same-data control. Previous 0.4 ms models remain unchanged for historical study.
+
+```bash
+# Each command uses /workspace/kinetics-venv/bin/python in the cloud environment.
+python -m kinetics.long_data --output results/long10ms_data
+python -m kinetics.long_data_report
+python -m kinetics.long_committee_study --config configs/committee100_10ms.json   --budget-seconds 5400
+python -m kinetics.long_committee_report
+python -m kinetics.verify_long_committee
+python -m pytest -q
+```
+
+This run had explicit approval for up to 90 CPU minutes. The runner defaults to a
+30-minute cap; do not increase a task's approved compute budget without approval.
+Existing data outputs are refused; copy configs and use new paths to reproduce.
+`--resume` validates source/config/model hashes and continues completed groups.
+`--phase train --train-limit 8` supports an inexpensive first training group.
+
+Independent models are computationally batched for training; gradients, norm
+clipping, minibatch streams and Adam moments stay separate. The vectorized
+physical backend uses the mechanism's NASA-7 polynomials and the same element
+projection/enthalpy equations, validated against Cantera/scalar projection. It
+never integrates the chemical ODE at inference. Numerical scalar/thermodynamic
+fallbacks are distinct from an ODE fallback.
+
+```python
+from kinetics.committee import Committee
+model = Committee.load('results/committee100_long10ms/methods/medoid100.json')
+next_state = model.predict(x)  # x rows: [T_K, Y9, P_Pa]; fixed dt=2e-6 s
+selected_seed = model.last_diagnostics['selected_seed']
+```
+
+Reports include full and regime-specific profiles, ignition tails, failed versus
+censored outcomes, conservation, and entropy diagnostics. Increasing member count
+does not guarantee lower shared bias or long-time profile error.
+
+After initial publication to `main`, subsequent development uses `kisung` as
+requested by the user. See AGENTS.md.
