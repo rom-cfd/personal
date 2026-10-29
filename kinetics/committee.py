@@ -69,12 +69,15 @@ class Committee:
             from .vector_physics import VectorThermo
             self.vector_physics=VectorThermo()
         elif physics_backend=='wang_boxcox':
-            from .wang_physics import WangThermo
-            self.vector_physics=WangThermo()
+            pass  # The correction exponent is taken from the loaded model below.
         elif physics_backend!='cantera':raise ValueError('unknown physical correction backend')
         self.members=[Predictor.load(p) for p in paths];self.base=self.members[0]
-        if physics_backend=='wang_boxcox' and (self.base.spec['kind']!='boxcox' or self.base.transform.gamma!=.1):
-            raise ValueError('Wang backend currently uses Box-Cox gamma=.1')
+        if physics_backend=='wang_boxcox':
+            from .wang_physics import WangThermo
+            gamma = self.base.transform.gamma
+            if self.base.spec['kind']!='boxcox' or not 0 < gamma <= 1:
+                raise ValueError('Wang backend requires Box-Cox with 0 < gamma <= 1')
+            self.vector_physics=WangThermo(gamma=gamma)
         for p in self.members[1:]:
             if p.spec['kind']!=self.base.spec['kind'] or p.transform.gamma!=self.base.transform.gamma:
                 raise ValueError('homogeneous preprocessing required')

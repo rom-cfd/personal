@@ -1,5 +1,27 @@
 # Nine-species hydrogen kinetics preprocessing study
 
+## Box–Cox preprocessing ablation: γ=0.2 and 0.5
+
+The `pre-process` experiment returns to the earlier **64/64/64 tanh** network.
+It freshly trains ten independent members per gamma on the same immutable
+10-ms, train-only downsampled data, with 10,000 updates per member. Wang hard
+correction uses the matching gamma. The best of all twenty members by full
+validation one-step physical error is frozen as one common single-model control
+before rollout/test evaluation; per-gamma best singles are auxiliary controls.
+Mean10 and medoid10 run all 5,000 self-fed steps, with no chemical ODE fallback.
+
+```bash
+/workspace/kinetics-venv/bin/python -m kinetics.preprocess_study --config configs/preprocess.json
+/workspace/kinetics-venv/bin/python -m pytest -q --junitxml=results/preprocess_tanh10/pytest.xml > results/preprocess_tanh10/pytest.log
+/workspace/kinetics-venv/bin/python -m kinetics.preprocess_verify
+/workspace/kinetics-venv/bin/python -m kinetics.preprocess_report
+```
+
+Results: [PREPROCESS_REPORT.md](PREPROCESS_REPORT.md). Repeated experiments need
+a new output path in a copied config; `--resume` checks existing configuration,
+input/model hashes and frozen selections. Historical experiment outputs remain
+unchanged. The separate paper/GELU pilot below is not used for this ablation.
+
 Current active formulation: **next-state Y prediction with Wang hard correction**,
 as recorded in [configs/active_model.json](configs/active_model.json). The previous
 default remains `medoid100`; mean100 and the validation-selected singleton are

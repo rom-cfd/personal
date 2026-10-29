@@ -1,8 +1,10 @@
 # Development workflow
 
-After the initial user-requested publication to `main`, use `kisung` for subsequent
-work. Switch to `kisung` before editing; do not push subsequent changes directly
-to `main` unless the user explicitly asks. Use the existing checkout, not a new
+Follow an explicitly requested branch. The current Box–Cox gamma=.2/.5,
+ten-member tanh experiment uses `pre-process`, branched from the latest `kisung`;
+continue that experiment on `pre-process`. For other subsequent work, use
+`kisung` unless the user asks otherwise. Do not push subsequent changes directly
+to `main` unless explicitly requested. Use the existing checkout, not a new
 worktree, unless the user requests one.
 
 Run Python via `/workspace/kinetics-venv/bin/python` in this cloud environment.

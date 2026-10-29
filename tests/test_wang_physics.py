@@ -1,19 +1,49 @@
 import numpy as np
+import pytest
 from kinetics.wang_physics import wang_project, WangThermo
 
 
-def test_paper_equations_sign_and_minimum_norm():
+@pytest.mark.parametrize('gamma', [.1, .2, .5])
+def test_paper_equations_sign_and_minimum_norm(gamma):
     thermo = WangThermo()
     rng = np.random.default_rng(51)
     current = rng.dirichlet(np.ones(9), size=30)
     proposal = current * rng.uniform(.99, 1.01, current.shape)
-    result, residual = wang_project(proposal, current, thermo.matrix)
+    result, residual = wang_project(proposal, current, thermo.matrix, gamma)
     for v, c, actual in zip(proposal, current, result):
-        d = v ** .9
+        d = v ** (1-gamma)
         b = thermo.matrix * d
         delta = b.T @ np.linalg.solve(b @ b.T, thermo.matrix @ (c - v))
         np.testing.assert_allclose(actual, v + d * delta, atol=1e-14)
     assert residual.max() < 1e-13
+
+
+@pytest.mark.parametrize('gamma', [.1, .2, .5])
+def test_committee_uses_saved_model_gamma_for_wang_correction(tmp_path, gamma):
+    from kinetics.study import Predictor
+    from kinetics.committee import Committee, fit_metric
+    rng = np.random.default_rng(67)
+    state = np.c_[rng.uniform(1000, 1500, 8), rng.dirichlet(np.ones(9), 8)]
+    x = np.c_[state, np.full(8, 101325.)]
+    model = Predictor(dict(kind='boxcox', gamma=gamma), x, state,
+                      dict(hidden_layers=[4], activation='tanh', learning_rate=.001), 11)
+    weights = model.model.get_weights()
+    weights[-1][:] = .001
+    model.model.set_weights(weights)
+    path = tmp_path / 'member'
+    model.save(path)
+    p = Committee([path], [11], fit_metric(state), rule='single', physics_backend='wang_boxcox')
+    assert p.vector_physics.gamma == gamma
+    raw = p.proposals(x)
+    expected = WangThermo(gamma=gamma).repair(raw, x)[0]
+    assert np.isfinite(expected).all()
+    np.testing.assert_allclose(p.predict(x), expected, atol=1e-10)
+    np.testing.assert_allclose(expected[:, 1:] @ p.matrix.T, state[:, 1:] @ p.matrix.T, atol=1e-12)
+    config = tmp_path / 'committee.json'
+    p.save(config)
+    loaded = Committee.load(config)
+    assert loaded.vector_physics.gamma == gamma
+    np.testing.assert_allclose(loaded.predict(x), expected, atol=1e-10)
 
 
 def test_zero_and_extremely_small_species_no_floor_or_nan():
