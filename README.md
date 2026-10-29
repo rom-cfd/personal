@@ -189,3 +189,22 @@ does not guarantee lower shared bias or long-time profile error.
 
 After initial publication to `main`, subsequent development uses `kisung` as
 requested by the user. See AGENTS.md.
+
+## Wang ANN-hard correction on the same trained members
+
+The paper's Box–Cox tangent-space projection (Eqs. 5–9) is available as
+`physics_backend='wang_boxcox'`. It replaces the previous nonnegative weighted
+Y-space QP; the common decoder guard and fixed-pressure enthalpy recovery remain.
+Negative or element-inconsistent corrected candidates are rejected without
+clipping or an old-QP fallback. This is a frozen-weight correction comparison,
+with no retraining or test-driven parameter tuning.
+
+```bash
+python -m kinetics.wang_study --output results/wang_hard10ms
+python -m kinetics.log_time_profiles --root results/wang_hard10ms
+python -m kinetics.wang_report
+```
+
+Use a new output path for repeated experiments. Results and limitations are in
+[WANG_HARD_REPORT.md](WANG_HARD_REPORT.md). The plotting command excludes t=0
+from log-axis display only; full-time error metrics retain the original data.

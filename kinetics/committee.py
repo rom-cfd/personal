@@ -68,8 +68,13 @@ class Committee:
         if physics_backend=='vectorized_nasa':
             from .vector_physics import VectorThermo
             self.vector_physics=VectorThermo()
+        elif physics_backend=='wang_boxcox':
+            from .wang_physics import WangThermo
+            self.vector_physics=WangThermo()
         elif physics_backend!='cantera':raise ValueError('unknown physical correction backend')
         self.members=[Predictor.load(p) for p in paths];self.base=self.members[0]
+        if physics_backend=='wang_boxcox' and (self.base.spec['kind']!='boxcox' or self.base.transform.gamma!=.1):
+            raise ValueError('Wang backend currently uses Box-Cox gamma=.1')
         for p in self.members[1:]:
             if p.spec['kind']!=self.base.spec['kind'] or p.transform.gamma!=self.base.transform.gamma:
                 raise ValueError('homogeneous preprocessing required')
@@ -96,7 +101,7 @@ class Committee:
 
     def repair(self,proposals,x):
         """Common element/enthalpy correction; reject thermodynamically infeasible states."""
-        if self.physics_backend=='vectorized_nasa':return self.vector_physics.repair(proposals,x)
+        if self.physics_backend in ('vectorized_nasa','wang_boxcox'):return self.vector_physics.repair(proposals,x)
         out=np.full_like(proposals,np.nan)
         for b,a in enumerate(x):
             self.gas.TPY=a[0],a[-1],a[1:10];h=self.gas.enthalpy_mass
