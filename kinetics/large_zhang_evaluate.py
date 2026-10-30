@@ -9,6 +9,7 @@ from .zhang_raw_study import raw_rollouts,assess
 from .data import samples
 from .metrics import evaluate
 from .long_committee_study import horizon_summary
+from .enthalpy_temperature import EnthalpyTemperature,load_predictor
 
 
 def main():
@@ -18,8 +19,12 @@ def main():
     parser.add_argument('--source',type=Path,default=Path('results/long10ms_data/trajectories.npz'))
     parser.add_argument('--reference',type=Path,default=Path('results/zhang_multiscale_raw/reference20ms.npz'))
     parser.add_argument('--output',type=Path);parser.add_argument('--preflight',action='store_true')
+    parser.add_argument('--temperature-mode',choices=['raw','enthalpy'],default='raw')
+    parser.add_argument('--expected-epochs',type=int,default=10)
+    parser.add_argument('--model-version',choices=['final','best'],default='final')
     args=parser.parse_args();seeds=sorted(args.seeds);root=args.root
-    out=args.output or root/('evaluation_seeds'+'_'.join(map(str,seeds)))
+    out=args.output or root/(('evaluation_' if args.temperature_mode=='raw' else 'evaluation_enthalpy_')+
+        ('best_' if args.model_version=='best' else '')+'seeds'+'_'.join(map(str,seeds)))
     if out.exists():raise FileExistsError('Use a new evaluation output')
     cfg=json.loads((root/'config.json').read_text());assert cfg['physics'] is False
     records=[];paths=[]
@@ -27,7 +32,13 @@ def main():
         folder=root/f'seed{seed}';r=json.loads((folder/'completed.json').read_text())
         assert r['status']=='completed' and r['physics'] is False
         assert r['model_sha256']==sha(folder/'model.keras') and r['metadata_sha256']==sha(folder/'model.json')
-        if not args.preflight:assert r['epochs']==10 and r['examples_per_epoch']==5300000
+        if not args.preflight:assert r['epochs']==args.expected_epochs and r['examples_per_epoch']==5300000
+        if args.model_version=='best':
+            best=json.loads((folder/'best/selection.json').read_text());assert best['test_used'] is False
+            folder=folder/'best'
+            assert sha(folder/'model.keras')==best['model_sha256'] and sha(folder/'model.json')==best['metadata_sha256']
+            r={**r,'selected_epoch':best['epoch'],'model_sha256':best['model_sha256'],
+                'metadata_sha256':best['metadata_sha256'],'selection':'minimum validation MAE across epochs'}
         records.append(r);paths.append(str(folder/'model'))
     preprocessing=json.loads((root/'preprocessing/preprocessing.json').read_text())
     assert all(r['preprocessing_sha256']==sha(root/'preprocessing/preprocessing.json') for r in records)
@@ -40,19 +51,26 @@ def main():
     # Same physical scale definition as the earlier medoid, fitted on full training data.
     dataset=Path(cfg['data']);dm=json.loads((dataset/'manifest.json').read_text())
     assert sha(dataset/'manifest.json')==preprocessing['data_manifest_sha256']
-    raw_x_path=dataset/dm['arrays']['x']['path']
-    assert sha(raw_x_path)==dm['arrays']['x']['sha256']
-    raw_x=np.load(raw_x_path,mmap_mode='r');gamma=cfg['gamma']
-    metric=dict(temperature_scale=max(float(preprocessing['input_scale'][0]),100.),
-        species_scale=[max(float(np.quantile(raw_x[:,j],.95)),1e-8) for j in range(1,10)],
-        fit_split='train',fit_examples=len(raw_x),derivation='temperature std and species 95th percentiles, training only')
-    atomic_json(out/'protocol.json',dict(physics=False,seeds=seeds,gamma=gamma,preflight=args.preflight,
+    gamma=cfg['gamma'];metric_path=root/'preprocessing/metric.json'
+    if metric_path.exists():
+        cached=json.loads(metric_path.read_text());assert cached['data_manifest_sha256']==sha(dataset/'manifest.json')
+        metric=cached['metric'];assert metric['fit_split']=='train' and metric['fit_examples']==preprocessing['examples']
+    else:
+        raw_x_path=dataset/dm['arrays']['x']['path']
+        assert sha(raw_x_path)==dm['arrays']['x']['sha256']
+        raw_x=np.load(raw_x_path,mmap_mode='r')
+        metric=dict(temperature_scale=max(float(preprocessing['input_scale'][0]),100.),
+            species_scale=[max(float(np.quantile(raw_x[:,j],.95)),1e-8) for j in range(1,10)],
+            fit_split='train',fit_examples=len(raw_x),derivation='temperature std and species 95th percentiles, training only')
+    atomic_json(out/'protocol.json',dict(physics=args.temperature_mode=='enthalpy',seeds=seeds,gamma=gamma,preflight=args.preflight,
         epochs=cfg['epochs'],training_pairs=preprocessing['examples'],
         validation_selection='all 90000 one-step pairs; original physical-unit selection_score; ties ascending seed',
-        test_or_rollout_for_selection=False,horizons=[.01,.02],raw_pressure_self_fed=True,
-        decoder_clipping=False,element_projection=False,enthalpy_closure=False,mass_renormalization=False,
+        test_or_rollout_for_selection=False,horizons=[.01,.02],raw_pressure_self_fed=True,raw_temperature_self_fed=args.temperature_mode=='raw',
+        decoder_clipping=False,element_projection=False,enthalpy_closure=args.temperature_mode=='enthalpy',mass_renormalization=False,
+        temperature_mode=args.temperature_mode,thermodynamic_composition='Cantera-normalized for properties only; self-fed ANN Y unchanged',
         medoid_metric=metric,reference_sha256=sha(args.reference),source_sha256=sha(args.source)))
     began=time.perf_counter();p=ZhangCommittee(paths,seeds,metric,'mean')
+    if args.temperature_mode=='enthalpy':p=EnthalpyTemperature(p)
     vx,vy,_=samples(data,'val');predictions=np.empty((len(seeds),len(vx),10))
     for i in range(0,len(vx),512):predictions[:,i:i+512]=p.candidates(vx[i:i+512])[:,:,:10]
     ranking=[]
@@ -70,7 +88,9 @@ def main():
     if len(seeds)>1:definitions += [('mean'+str(len(seeds)),paths,seeds,'mean'),('medoid'+str(len(seeds)),paths,seeds,'medoid')]
     rows=[];summaries=[];one=[];checks=[];timings=[]
     for name,pp,ss,rule in definitions:
-        p=ZhangCommittee(pp,ss,metric,rule);p.save(out/'methods'/f'{name}.json')
+        p=ZhangCommittee(pp,ss,metric,rule)
+        if args.temperature_mode=='enthalpy':p=EnthalpyTemperature(p)
+        p.save(out/'methods'/f'{name}.json')
         for split in ('val','test'):
             x,y,ids=samples(data,split);prediction=np.empty_like(y)
             for i in range(0,len(x),512):prediction[i:i+512]=p.predict(x[i:i+512])
@@ -91,14 +111,16 @@ def main():
                 summary=horizon_summary(rr)
                 summaries.append(dict(method=name,split=split,horizon=horizon,**summary))
                 print('RESULT',name,split,horizon,summary,flush=True)
-            restored=ZhangCommittee.load(out/'methods'/f'{name}.json')
+            restored=load_predictor(out/'methods'/f'{name}.json')
             np.testing.assert_allclose(first,restored.predict_full(np.c_[truth[:,0],pressures]),atol=1e-9,rtol=1e-8,equal_nan=True)
             for j,a in enumerate(traces):
                 if len(a)>1:np.testing.assert_allclose(first[j],a[1],atol=1e-9,rtol=1e-8)
             checks.append(dict(method=name,split=split,reload_match=True,first_step_match=True))
             for filename,values in [('summary',summaries),('trajectories',rows),('one_step',one),('checks',checks),('timing',timings)]:
                 pd.DataFrame(values).to_csv(out/f'{filename}.csv',index=False)
-    atomic_json(out/'manifest.json',dict(status='completed',preflight=args.preflight,physics=False,
+    atomic_json(out/'manifest.json',dict(status='completed',preflight=args.preflight,physics=args.temperature_mode=='enthalpy',
+        temperature_mode=args.temperature_mode,
+        model_version=args.model_version,
         models=len(seeds),epochs=cfg['epochs'],training_examples=preprocessing['examples'],
         execution_seconds=time.perf_counter()-began,model_records=records,evaluator_sha256=sha(__file__)))
 
