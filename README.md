@@ -1,6 +1,24 @@
 # Nine-species hydrogen kinetics preprocessing study
 
-## Current follow-up: Zhang multi-scale sampling, physics OFF
+## Full-scale follow-up: 5.3 million pairs and GELU
+
+The current request scales generation to **180,000 independent states at each
+of 25 log scales + 400,000 hot initial states with two consecutive labels**:
+exactly 5,300,000 pairs. The new architecture is **11–1600–800–400–11, GELU**,
+with ten complete shuffled epochs and physics OFF. See [run details](ZHANG_5P3M_RUN.md).
+The full-scale run must not be confused with the completed reduced pilot below;
+full-scale model results are not yet available.
+
+Generation is sharded, process-parallel and resumable. Large arrays and optimizer
+checkpoints stay in the cloud workspace; source, configurations, checksums and
+result reports can be published without pushing gigabyte-scale arrays to GitHub.
+
+```bash
+python -m kinetics.multiscale_large_data --config configs/zhang_5p3m_data.json --resume
+python -m kinetics.large_zhang_training --config configs/zhang_5p3m_gelu.json --resume
+```
+
+## Previous reduced study: Zhang multi-scale sampling, physics OFF
 
 The requested follow-up uses independent log-space sampling from Zhang 2022
 Section 2.5, not perturbations of manifold states. The NN follows the paper's
