@@ -2,7 +2,7 @@
 import argparse,json
 from pathlib import Path
 import numpy as np
-from .multiscale_large_data import sha,atomic_json,tasks_for
+from .multiscale_large_data import sha,atomic_json,tasks_for,LEGACY_SOURCE_SHA256
 from .multiscale_data import integrate_labels
 from .data import mechanism
 
@@ -14,6 +14,9 @@ def main():
     args=parser.parse_args();root=args.root
     m=json.loads((root/'manifest.json').read_text());cfg=json.loads((root/'config.json').read_text())
     assert m['status']=='completed'
+    accepted_sources=set(m.get('accepted_generator_sources',[m['source_sha256']]))
+    assert accepted_sources <= {m['source_sha256'],LEGACY_SOURCE_SHA256}
+    assert accepted_sources == {r['source_sha256'] for r in m['parts']}
     if not args.preflight:
         assert m['pairs']==5300000 and m['basic_pairs']==4500000 and m['hot_pairs']==800000
         assert m['independent_initial_states']==4900000 and len(m['parts'])==2450
@@ -25,7 +28,8 @@ def main():
     gas=mechanism();offset=0;group_end=0;negative=0;max_t_error=0.;max_y_error=0.;fresh_cases=0;per_scale={};hot_rows=0
     for number,r in enumerate(m['parts']):
         assert sha(root/r['file'])==r['sha256'],r['file']
-        assert r['config_sha256']==m['config_sha256'] and r['source_sha256']==m['source_sha256']
+        assert r['config_sha256']==m['config_sha256'] and r['source_sha256'] in accepted_sources
+        assert r['max_element_residual']<1e-9
         with np.load(root/r['file']) as d:
             xx=d['x'];yy=d['y'];groups=d['group_id'];positions=d['group_step']
             np.testing.assert_array_equal(x[offset:offset+len(xx)],xx)

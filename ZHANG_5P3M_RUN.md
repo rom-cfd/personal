@@ -33,6 +33,22 @@ within a shard the documented Cantera state-reset API avoids repeated setup.
 Reset-solver labels are tested against fresh integrations, and every shard
 checks mass and elemental conservation. No approximate chemistry solver is used.
 
+On October 30, generation stopped at an elemental-residual assertion (a
+reproduced case reached 1.20e-9 against the unchanged 1e-9 limit). The recovery
+reintegrates the identical initial state with a fresh Cantera integrator at
+rtol=1e-12, atol=1e-24; that case then conserved elements to about 1e-15.
+Labels are never projected to satisfy the check. A candidate still failing the
+check after retry is rejected and replaced, with its reason recorded. Retry
+states and residuals are recorded in each affected shard's metadata. Previously
+verified shards remain unchanged; the manifest explicitly lists both generator
+source versions, and the verifier checks each shard against those versions.
+
+The resumed generation recovered **1,986 finished shards / 3,972,000 pairs**,
+including completed files written just before the earlier manager stopped.
+After full-data verification, the local sequential queue starts gamma=.1 seed11
+for ten complete GELU epochs, then evaluates 10/20 ms and renders the report.
+Training has not started at this recovery snapshot.
+
 ```bash
 cd /workspace/personal
 /workspace/kinetics-venv/bin/python -m kinetics.multiscale_large_data \

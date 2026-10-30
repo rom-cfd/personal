@@ -11,6 +11,24 @@ import numpy as np
 from .data import mechanism,SPECIES
 from .multiscale_data import sample_states
 
+# Completed v1 shards passed the same conservation threshold and stay immutable.
+LEGACY_SOURCE_SHA256='c286bc86926eb15c717b99752af88380b133484dd507aca33893a5d179bf549c'
+
+
+def fresh_conservation_retry(state,steps,dt,gas):
+    """Independent CVODE retry with stricter tolerances; no label correction."""
+    gas.TPY=state[0],state[-1],state[1:10]
+    reactor=ct.IdealGasConstPressureReactor(gas,clone=True);phase=reactor.phase
+    net=ct.ReactorNet([reactor]);net.rtol=1e-12;net.atol=1e-24
+    xx=[];yy=[];qq=[]
+    for step in range(steps):
+        if phase.Y.min() < -1e-14:raise ValueError('negative_retry_input')
+        xx.append(np.r_[reactor.T,np.maximum(phase.Y,0),state[-1]])
+        qq.append(phase.heat_release_rate);net.advance((step+1)*dt)
+        if phase.Y.min() < -1e-14:raise ValueError('negative_retry_target')
+        yy.append(np.r_[reactor.T,np.maximum(phase.Y,0)])
+    return np.asarray(xx),np.asarray(yy),np.asarray(qq)
+
 
 def sha(path):
     h=hashlib.sha256()
@@ -45,7 +63,7 @@ def generate_shard(task,cfg,out,config_hash):
     groups=np.empty(rows,np.int64);positions=np.empty(rows,np.int8)
     matrix=np.array([[gas.n_atoms(s,e)*gas.atomic_weight(e)/gas.molecular_weights[j]
         for j,s in enumerate(SPECIES)] for e in ('H','O','N')])
-    accepted=0;attempts=0;rejections={};max_elements=0.
+    accepted=0;attempts=0;rejections={};max_elements=0.;conservation_retries=[]
     while accepted<task['initial_states']:
         if attempts>20*task['initial_states']+100:raise RuntimeError('Too many rejected candidates')
         draws,factors=sample_states(min(task['initial_states']-accepted,128),task['k'],rng,cfg,task['hot'])
@@ -62,6 +80,18 @@ def generate_shard(task,cfg,out,config_hash):
                     if phase.Y.min() < -1e-14:raise ValueError('negative_target')
                     yy.append(np.r_[reactor.T,np.maximum(phase.Y,0)])
                 xx=np.asarray(xx);yy=np.asarray(yy);qq=np.asarray(qq)
+                residual=float(np.max(np.abs((yy[:,1:]-xx[:,1:10])@matrix.T)))
+                if residual>=1e-9:
+                    # Retry exactly the same sampled state with a fresh integrator.
+                    # Do not weaken the threshold or project chemistry labels.
+                    xx,yy,qq=fresh_conservation_retry(state,steps,cfg['dt'],gas)
+                    fresh_residual=float(np.max(np.abs((yy[:,1:]-xx[:,1:10])@matrix.T)))
+                    conservation_retries.append(dict(attempt=attempts,reset_residual=residual,
+                        fresh_residual=fresh_residual,state=state.tolist()))
+                    if fresh_residual>=1e-9:reason='element_conservation_after_fresh_retry'
+                    # Discard all history from the integrator that drifted.
+                    gas=mechanism();reactor=ct.IdealGasConstPressureReactor(gas,clone=True);phase=reactor.phase
+                    net=ct.ReactorNet([reactor]);net.rtol=1e-10;net.atol=1e-20
                 if not np.isfinite(xx).all() or not np.isfinite(yy).all() or not np.isfinite(qq).all():reason='nonfinite'
                 elif np.any(yy[:,0]<cfg['temperature_admissibility_K'][0]) or np.any(yy[:,0]>cfg['temperature_admissibility_K'][1]):reason='target_outside_existing_200_6000K_domain'
             except (ValueError,ct.CanteraError) as e:reason=type(e).__name__
@@ -85,6 +115,7 @@ def generate_shard(task,cfg,out,config_hash):
             initial_hrr_W_m3=q,normalization_factor=factor,dt=cfg['dt'],hot=task['hot'])
     os.replace(tmp,target)
     record=dict(**task,rows=rows,attempts=attempts,rejections=rejections,
+        conservation_retries=conservation_retries,
         negative_initial_hrr_pairs=int((q<0).sum()),max_element_residual=max_elements,
         seconds=time.perf_counter()-start,file=str(target.relative_to(out)),sha256=sha(target),config_sha256=config_hash,source_sha256=sha(__file__))
     atomic_json(out/'parts'/f'{name}.json',record)
@@ -126,7 +157,7 @@ def main():
         p=out/'parts'/f'{task["name"]}.json'
         if p.exists():
             r=json.loads(p.read_text());assert r['config_sha256']==config_hash
-            assert r['source_sha256']==source_hash,'Cannot mix shards from changed generator code'
+            assert r['source_sha256'] in (source_hash,LEGACY_SOURCE_SHA256),'Unrecognized generator version'
             assert r['sha256']==sha(out/r['file']),r['file'];records[task['name']]=r
     remaining=[t for t in tasks if t['name'] not in records]
     started=time.perf_counter();previous=0.
@@ -165,6 +196,9 @@ def main():
         persist('assembling_arrays');arrays=assemble(out,ordered,cfg['target_pairs'])
         assert source_hash==sha(__file__),'Generator changed while running'
         manifest=dict(status='completed',pairs=cfg['target_pairs'],independent_initial_states=sum(t['initial_states'] for t in tasks),
+            accepted_generator_sources=sorted({r['source_sha256'] for r in ordered}),
+            conservation_retries=sum(len(r.get('conservation_retries',[])) for r in ordered),
+            conservation_retry_method='fresh Cantera CVODE on identical initial state, rtol=1e-12, atol=1e-24; reject only if still inadmissible',
             basic_pairs=25*cfg['per_scale'],hot_pairs=2*cfg['hot_initial_states'],parts=ordered,arrays=arrays,
             config_sha256=config_hash,source_sha256=source_hash,seconds=previous+time.perf_counter()-started,
             physics_inference=False,perturbation=False,manifold_data_used=False,hrr_filter_applied=False,
