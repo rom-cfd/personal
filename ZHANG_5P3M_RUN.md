@@ -1,7 +1,17 @@
 # Full-scale Zhang sampling and GELU training
 
-**Status: data generation in progress; full-scale training/evaluation is not yet
-complete.** Do not use the reduced pilot's results as full-scale results.
+**Status: full dataset generation/verification, one GELU model's ten epochs,
+and 10/20-ms evaluation completed on October 30, 2026, at 16:05 KST.**
+This run contains gamma=.1 seed11 only; a ten-member ensemble is not complete.
+See [results and 18 temperature profiles](ZHANG_5P3M_GELU_REPORT.md).
+
+All 5,300,000 rows and 2,450 shard hashes passed verification. Fresh Cantera
+reintegration of 245 cases gave a maximum temperature difference of 3.18e-6 K
+and species mass-fraction difference of 3.11e-10. Training completed 103,520
+updates (53,000,000 examples seen) in 46.3 minutes on four CPU threads.
+All 18 test trajectories reached 20 ms numerically, but none passed the physical
+admissibility criteria. Mean per-profile temperature RMSE was 624.5 K at 10 ms
+and 596.3 K at 20 ms. This is not a physically valid final integrator.
 
 The user requested the paper's 5.3-million-pair scale, ten complete epochs, and
 the previously prepared large paper-model architecture including GELU. Physics
@@ -47,7 +57,8 @@ The resumed generation recovered **1,986 finished shards / 3,972,000 pairs**,
 including completed files written just before the earlier manager stopped.
 After full-data verification, the local sequential queue starts gamma=.1 seed11
 for ten complete GELU epochs, then evaluates 10/20 ms and renders the report.
-Training has not started at this recovery snapshot.
+Training had not started at that recovery snapshot; it has since completed as
+recorded above.
 
 ```bash
 cd /workspace/personal

@@ -7,7 +7,10 @@ of 25 log scales + 400,000 hot initial states with two consecutive labels**:
 exactly 5,300,000 pairs. The new architecture is **11–1600–800–400–11, GELU**,
 with ten complete shuffled epochs and physics OFF. See [run details](ZHANG_5P3M_RUN.md).
 The full-scale run must not be confused with the completed reduced pilot below;
-full-scale model results are not yet available.
+the full-scale gamma=.1 seed11 model has now completed ten epochs. See the
+[full-scale report and 18 temperature profiles](ZHANG_5P3M_GELU_REPORT.md).
+All 18 test cases reached 20 ms numerically, but 0/18 passed the physical
+admissibility criteria. A ten-model full-scale ensemble is not yet complete.
 
 Generation is sharded, process-parallel and resumable. Large arrays and optimizer
 checkpoints stay in the cloud workspace; source, configurations, checksums and
