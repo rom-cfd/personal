@@ -1,0 +1,41 @@
+{
+  "input": "T_K,linear_P_atm,literal_BCT_Y9",
+  "output": "delta_T_K,delta_P_atm,delta_BCT_Y9",
+  "normalization": "separate input and output Z-score, train only",
+  "target": "BCT(Ynext)-BCT(Ynow), NOT BCT(Ynext-Ynow)",
+  "physics": false,
+  "enthalpy_closure": false,
+  "element_projection": false,
+  "decoder_clip": false,
+  "mass_renormalization": false,
+  "pressure_evolution": "NN pressure output is self-fed, not externally pinned",
+  "loss": "L1 on standardized increments",
+  "hidden_layers": [
+    64,
+    64,
+    64
+  ],
+  "activation": "tanh",
+  "paper_gamma": 0.1,
+  "gamma_ablation": [
+    0.2,
+    0.5
+  ],
+  "paper_physics_exception": "Zhang text recovers T by enthalpy; user explicitly disables this and uses all 11 NN outputs",
+  "sampling": "independent log-space per-scale and hot two-step labels; no perturbation; matched pressure extension to .5-5 atm",
+  "selection": "all 90000 validation one-step pairs; physical-unit score; ties ascending seed; undefined all-invalid scores treated as infinity",
+  "all_invalid_singleton": "lowest seed retained only as deterministic failure diagnostic; not a usable best model",
+  "test_or_rollout_for_selection": false,
+  "finite_candidates": "all finite raw outputs retained, including nonphysical values",
+  "inverse_domain": "undefined literal BCT inverse is NaN; no signed extension",
+  "horizons": [
+    0.01,
+    0.02
+  ],
+  "numerical_termination": {
+    "abs_T_K": 1000000.0,
+    "abs_Y": 1000.0,
+    "abs_P_Pa": 1000000000000000.0
+  },
+  "matched_control": "gamma=.1, same architecture, L1, seeds, update count, raw I/O; only training data differ"
+}

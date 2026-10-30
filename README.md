@@ -1,5 +1,36 @@
 # Nine-species hydrogen kinetics preprocessing study
 
+## Current follow-up: Zhang multi-scale sampling, physics OFF
+
+The requested follow-up uses independent log-space sampling from Zhang 2022
+Section 2.5, not perturbations of manifold states. The NN follows the paper's
+full-state increment equations: separately standardized inputs
+`[T, P, BCT(Y)]` and targets `delta[T, P, BCT(Y)]`, with L1 loss. The previous
+64/64/64 tanh architecture is retained. Temperature and pressure are self-fed
+from the NN, with no enthalpy closure, projection, clipping, or renormalization.
+
+The study trains ten members per gamma (.1/.2/.5), plus ten matched raw-I/O
+manifold controls at gamma=.1. It assesses both **10 ms and 20 ms** final times.
+All test methods have **0/18 physically admissible completions**: longer numerical
+survival is not evidence of a valid chemistry integrator. Data size, pressure
+coverage, normalization assumptions, and other differences from the paper are
+documented in the report.
+
+- [18-profile gallery and training-data coverage](ZHANG_MULTISCALE_GALLERY.md)
+- [Full report](ZHANG_MULTISCALE_RAW_REPORT.md)
+
+```bash
+/workspace/kinetics-venv/bin/python -m kinetics.multiscale_data --config configs/zhang_multiscale_matched_data.json
+/workspace/kinetics-venv/bin/python -m kinetics.zhang_raw_study
+/workspace/kinetics-venv/bin/python -m kinetics.zhang_raw_report
+/workspace/kinetics-venv/bin/python -m pytest -q --junitxml=results/zhang_multiscale_raw/pytest.xml > results/zhang_multiscale_raw/pytest.log
+/workspace/kinetics-venv/bin/python -m kinetics.zhang_raw_verify
+```
+
+Repeated runs require new configured output paths. Historical physics-on
+experiments and `configs/active_model.json` below remain comparison artifacts;
+they are not used by this physics-off runner.
+
 ## Per-step minimum physics-correction selection
 
 `kinetics.min_correction_study` reuses the frozen ten-member gamma=.2/.5 tanh

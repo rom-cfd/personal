@@ -34,7 +34,11 @@ def train_group(spec,seeds,updates,x,y,cfg,deadline=float('inf'),progress=False,
             for layer in range(len(params)//2):
                 h=tf.matmul(h,params[2*layer])+params[2*layer+1][:,None,:]
                 if layer<len(params)//2-1:h=tf.math.tanh(h)
-            losses=tf.reduce_mean((h-tf.gather(target,ids))**2,axis=(1,2))
+            error=h-tf.gather(target,ids)
+            if cfg.get('loss','mse')=='mae':
+                losses=tf.reduce_mean(tf.abs(error),axis=(1,2))
+            else:
+                losses=tf.reduce_mean(error**2,axis=(1,2))
             objective=tf.reduce_sum(losses)
         grads=clip_member_gradients(tape.gradient(objective,params))
         optimizer.apply_gradients(zip(grads,params))
