@@ -4,10 +4,10 @@
 
 CPU training is paused at epoch **10.676197836** (110,520 Adam updates).
 The continuation targets **1000 total epochs** with validation ReduceLROnPlateau.
-The split handoff payload is prepared locally with all 5.3M standardized training
-pairs and model/Adam/scheduler state. Upload of that payload is pending explicit
-approval; it is not included in this code/results push. See
-[GPU_HANDOFF.md](GPU_HANDOFF.md) for setup and the pending transfer instructions.
+The split handoff payload includes all 5.3M standardized training pairs and
+model/Adam/scheduler state. It passed restoration and continuation checks in a
+separate folder. See [GPU_HANDOFF.md](GPU_HANDOFF.md) to restore and resume on
+an NVIDIA GPU without regenerating data.
 
 The temperature-only enthalpy closure is implemented and tested against Cantera;
 see the [same-weight ten-epoch comparison](ZHANG_5P3M_ENTHALPY_EPOCH10_REPORT.md).
