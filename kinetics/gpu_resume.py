@@ -16,7 +16,10 @@ def main():
         for name,entry in manifest['files'].items():
             if name.startswith('results/zhang_5p3m_gelu_1000/g0.1/seed11/'):continue
             assert digest(safe_path(Path('.'),name))==entry['sha256'],name
-    else:restore(payload,Path('.'),verify_only=True)
+    else:
+        try:restore(payload,Path('.'),verify_only=True)
+        except AssertionError as error:
+            raise SystemExit(f'Handoff payload not restored ({error}). Run first: python -m kinetics.gpu_handoff restore') from None
     import tensorflow as tf
     if tf.__version__!='2.20.0':raise RuntimeError('Install tensorflow[and-cuda]==2.20.0 in a clean environment')
     devices=tf.config.list_physical_devices('GPU')
