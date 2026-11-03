@@ -1,0 +1,26 @@
+{
+  "base_config": "configs/ann_deeponet_mean10.json",
+  "output": "results/tp_phi_study/run_001",
+  "pre_experiment_backup_commit": "798a673f863c0aa6f59ab6b69d684815743145a6",
+  "architecture": {
+    "input_partition": "current_Y9__current_T_logP_initial_phi",
+    "branch_layers": [64, 64],
+    "trunk_layers": [32],
+    "latent_width": 7
+  },
+  "matched_updates": 10000,
+  "total_budget_seconds": 21600,
+  "evaluation_reserve_seconds": 2400,
+  "checkpoint_every": 5000,
+  "plateau": {
+    "minimum_updates": 50000,
+    "check_every": 5000,
+    "window_updates": 20000,
+    "observe_every": 1000,
+    "relative_thresholds": [0.01, 0.01, 0.03],
+    "sustain_updates": 10000
+  },
+  "evaluation_splits": ["val", "test"],
+  "modes": ["raw", "repaired"],
+  "test_used_for_selection": false
+}
