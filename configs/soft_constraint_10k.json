@@ -1,0 +1,21 @@
+{
+  "base_config": "configs/ann_deeponet_mean10.json",
+  "output": "results/soft_constraint_10k/run_001",
+  "families": ["ann", "p_only", "tp", "tp_phi"],
+  "updates_per_member": 10000,
+  "mu": 10.0,
+  "checkpoint_every": 2000,
+  "observe_every": 1000,
+  "training_wall_safety_seconds": 3600,
+  "pipeline_wall_safety_seconds": 7200,
+  "evaluation_splits": ["test"],
+  "modes": ["raw", "repaired"],
+  "test_used_for_selection": false,
+  "baseline_grid": "results/comparison_grid_7x10/run_001",
+  "reference_step1": "references/soft_constraint/step1.py",
+  "reference_step2": "references/soft_constraint/step2.py",
+  "objective": "transformed_residual_MSE + mu * mean(sum(abs(A @ Y_pred - A @ Y_true)))",
+  "physical_target": "Cantera next-state Y9",
+  "loss_inverse": "signed Box-Cox extension; original inverse on its valid nonnegative domain",
+  "inference_changed": false
+}

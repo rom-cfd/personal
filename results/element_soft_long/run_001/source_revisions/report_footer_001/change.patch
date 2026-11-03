@@ -1,0 +1,22 @@
+--- prepared
++++ display-corrected
+@@ -140,7 +140,7 @@
+         t,p,phi=initial
+         title=f'Cantera vs NN | Test IC {trajectory:02d} | NRMSE (util.py)'
+         subtitle=f'T0 = {t:.1f} K    P0 = {p/101325:.3f} atm    phi0 = {phi:.3f}    |    {mode.capitalize()} self-fed, 10 ms'
+-        extra='All columns compare the NN curve with the same IC Cantera curve. First graph row has only the ANN10k result.'
++        extra='All columns compare the NN curve with the same IC Cantera curve. Every graph row includes baseline10k, soft10k and soft-long.'
+     fig.suptitle(title,x=.5,y=.96,fontsize=22,fontweight='semibold')
+     fig.text(.5,.913,subtitle,ha='center',va='center',fontsize=12,color='#475569')
+     fig.text(.5,.871,r'$\mathrm{NRMSE}=\sqrt{\mathrm{mean}[(y_{Cantera}-y_{NN})^2]}/\sqrt{\mathrm{mean}[y_{Cantera}^{2}]}$',
+@@ -235,6 +235,10 @@
+ def report(root,cfg,snapshot,data,deadline):
+     before=time.perf_counter();destination=root/'reports'/f'report_{time.time_ns()}'
+     destination.mkdir(parents=True,exist_ok=False);summaries={};sources={}
++    revision=root/'source_revisions/report_footer_001/revision.json'
++    write_json(destination/'report_source.json',dict(path=__file__,sha256=sha256(__file__),
++        prepared_sha256=snapshot['source_sha256']['scripts/report_element_long_comparison.py'],
++        revision=json.loads(revision.read_text()) if revision.exists() else None))
+     ids=np.flatnonzero(data['split']=='test').astype(int).tolist();record=dict(dt=float(data['dt']),ids=ids)
+     with plt.rc_context(STYLE):
+         records=training_plots(root,destination)
