@@ -1,0 +1,75 @@
+{
+  "sweep_run_sha256": "2ac614dc6306a9b4bedba719fd3d267f6b88507e1dfe3a4657cd9492fa8d3917",
+  "lambda_value": 1.0,
+  "config": {
+    "base_config": "configs/ann_deeponet_mean10.json",
+    "origin_mu10": "results/soft_constraint_10k/run_001",
+    "output": "results/penalty_weight_sweep/run_001/lambda_1",
+    "lambdas": [
+      1.0,
+      100.0,
+      1000.0
+    ],
+    "families": [
+      "ann",
+      "p_only",
+      "tp",
+      "tp_phi"
+    ],
+    "updates_per_member": 10000,
+    "checkpoint_every": 2000,
+    "observe_every": 1000,
+    "training_wall_safety_seconds": 10800,
+    "pipeline_wall_safety_seconds": 14400,
+    "evaluation_splits": [
+      "test"
+    ],
+    "modes": [
+      "raw",
+      "repaired"
+    ],
+    "test_used_for_selection": false,
+    "inference_changed": false,
+    "mu": 1.0
+  },
+  "base_config": {
+    "source": "results/long10ms_data/trajectories.npz",
+    "training_pairs": "results/long10ms_data/training_pairs.npz",
+    "ann_root": "results/committee100_long10ms",
+    "output": "results/ann_deeponet_mean10/run_001",
+    "dt": 2e-06,
+    "horizon": 0.01,
+    "seeds": [
+      11,
+      22,
+      33,
+      44,
+      55,
+      66,
+      77,
+      88,
+      99,
+      110
+    ],
+    "gamma": 0.1,
+    "input_partition": "current_Y9__current_T_logP",
+    "branch_layers": [
+      64,
+      64
+    ],
+    "trunk_layers": [
+      32
+    ],
+    "latent_width": 7,
+    "learning_rate": 0.001,
+    "batch_size": 512,
+    "updates_per_member": 10000,
+    "modes": [
+      "raw",
+      "repaired"
+    ],
+    "one_step_chunk_size": 512,
+    "physics_backend": "vectorized_nasa",
+    "test_used_for_selection": false
+  }
+}
