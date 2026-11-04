@@ -1,0 +1,660 @@
+...........F...F...F.......................................              [100%]
+=================================== FAILURES ===================================
+____ test_exact_adam_rng_history_continuation_and_saved_gamma[0.05-tp_phi] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_exact_adam_rng_history_co3')
+family = 'tp_phi', gamma = 0.05
+
+    @pytest.mark.parametrize('family', FAMILIES)
+    @pytest.mark.parametrize('gamma', [.05, 1.])
+    def test_exact_adam_rng_history_continuation_and_saved_gamma(tmp_path, family, gamma):
+        x, y, cfg, _ = setup(family)
+>       whole = GammaTrainer(x, y, cfg, 11, family, gamma); whole.advance(5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gamma_sweep.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+kinetics/gamma_sweep_training.py:61: in __init__
+    self.serial = SerialSteps(self)
+                  ^^^^^^^^^^^^^^^^^
+kinetics/deeponet_long_training.py:126: in __init__
+    forward.get_concrete_function()
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1256: in get_concrete_function
+    concrete = self._get_concrete_function_garbage_collected(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1226: in _get_concrete_function_garbage_collected
+    self._initialize(args, kwargs, add_initializers_to=initializers)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:696: in _initialize
+    self._concrete_variable_creation_fn = tracing_compilation.trace_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:178: in trace_function
+    concrete_function = _maybe_define_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:283: in _maybe_define_function
+    concrete_function = _create_concrete_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:310: in _create_concrete_function
+    traced_func_graph = func_graph_module.func_graph_from_py_func(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/framework/func_graph.py:1060: in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:599: in wrapped_fn
+    out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:52: in autograph_handler
+    raise e.ag_error_metadata.to_exception(e)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:41: in autograph_handler
+    return api.converted_call(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:439: in converted_call
+    result = converted_f(*effective_args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/__autograph_generated_file0or50il6.py:13: in tf__forward
+    retval_ = ag__.converted_call(ag__.ld(p).model, (ag__.ld(features),), dict(training=False), fscope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:331: in converted_call
+    return _call_unconverted(f, args, kwargs, options, False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:459: in _call_unconverted
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py:122: in error_handler
+    raise e.with_traceback(filtered_tb) from None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input_spec = [InputSpec(shape=(None, 12), ndim=2)]
+inputs = [<tf.Tensor 'features:0' shape=(None, 11) dtype=float32>]
+layer_name = 'temperature_pressure_initial_phi_deeponet'
+
+    def assert_input_compatibility(input_spec, inputs, layer_name):
+        """Checks compatibility between the layer and provided inputs.
+    
+        This checks that the tensor(s) `inputs` verify the input assumptions
+        of a layer (if any). If not, a clear and actional exception gets raised.
+    
+        Args:
+            input_spec: An InputSpec instance, list of InputSpec instances, a nested
+                structure of InputSpec instances, or None.
+            inputs: Input tensor, list of input tensors, or a nested structure of
+                input tensors.
+            layer_name: String, name of the layer (for error message formatting).
+    
+        Raises:
+            ValueError: in case of mismatch between
+                the provided inputs and the expectations of the layer.
+        """
+        if not input_spec:
+            return
+    
+        input_spec = tree.flatten(input_spec)
+        if isinstance(inputs, dict):
+            # Flatten `inputs` by reference order if input spec names are provided
+            names = [spec.name for spec in input_spec]
+            if all(names):
+                list_inputs = []
+                for name in names:
+                    if name not in inputs:
+                        raise ValueError(
+                            f'Missing data for input "{name}". '
+                            "You passed a data dictionary with keys "
+                            f"{list(inputs.keys())}. "
+                            f"Expected the following keys: {names}"
+                        )
+                    list_inputs.append(inputs[name])
+                inputs = list_inputs
+    
+        inputs = tree.flatten(inputs)
+        if len(inputs) != len(input_spec):
+            # Provide appropriate error message for dict inputs.
+            spec_names = [spec.name for spec in input_spec if spec is not None]
+            if len(spec_names) == len(input_spec) and all(spec_names):
+                raise ValueError(
+                    f'Layer "{layer_name}" expects {len(input_spec)} named '
+                    f"input(s) with keys {spec_names}, but it received "
+                    f"{len(inputs)} input tensors. Pass inputs as a dict, e.g. "
+                    "`layer({"
+                    + ", ".join(f"'{n}': ..." for n in spec_names)
+                    + "})`."
+                )
+            raise ValueError(
+                f'Layer "{layer_name}" expects {len(input_spec)} input(s),'
+                f" but it received {len(inputs)} input tensors. "
+                f"Inputs received: {inputs}"
+            )
+        for input_index, (x, spec) in enumerate(zip(inputs, input_spec)):
+            if spec is None:
+                continue
+            if x is None and spec.optional:
+                continue
+    
+            # Having a shape/dtype is the only commonality of the various
+            # tensor-like objects that may be passed. The most common kind of
+            # invalid type we are guarding for is a Layer instance (Functional API),
+            # which does not have a `shape` attribute.
+            if not hasattr(x, "shape"):
+                raise ValueError(
+                    f"Inputs to a layer should be tensors. Got '{x}' "
+                    f"(of type {type(x)}) as input for layer '{layer_name}'."
+                )
+    
+            shape = backend.standardize_shape(x.shape)
+            ndim = len(shape)
+            # Check ndim.
+            if spec.ndim is not None and not spec.allow_last_axis_squeeze:
+                if ndim != spec.ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected ndim={spec.ndim}, found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            if spec.max_ndim is not None:
+                if ndim is not None and ndim > spec.max_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected max_ndim={spec.max_ndim}, "
+                        f"found ndim={ndim}"
+                    )
+            if spec.min_ndim is not None:
+                if ndim is not None and ndim < spec.min_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected min_ndim={spec.min_ndim}, "
+                        f"found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            # Check dtype.
+            if spec.dtype is not None:
+                dtype = backend.standardize_dtype(x.dtype)
+                if dtype != spec.dtype:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected dtype={spec.dtype}, "
+                        f"found dtype={dtype}"
+                    )
+    
+            # Check specific shape axes.
+            if spec.axes:
+                for axis, value in spec.axes.items():
+                    if value is not None and shape[axis] not in {
+                        value,
+                        None,
+                    }:
+                        raise ValueError(
+                            f"Input {input_index} with name '{spec.name}' of layer "
+                            f"'{layer_name}' is incompatible with the layer: "
+                            f"expected axis {axis} of input shape to have value "
+                            f"{value}, but received input with shape {shape}"
+                        )
+            # Check shape.
+            if spec.shape is not None:
+                spec_shape = spec.shape
+                if spec.allow_last_axis_squeeze:
+                    if shape and shape[-1] == 1:
+                        shape = shape[:-1]
+                    if spec_shape and spec_shape[-1] == 1:
+                        spec_shape = spec_shape[:-1]
+                for spec_dim, dim in zip(spec_shape, shape):
+                    if spec_dim is not None and dim is not None:
+                        if spec_dim != dim:
+>                           raise ValueError(
+                                f"Input {input_index} with name '{spec.name}' of "
+                                f"layer '{layer_name}' is incompatible with the "
+                                f"layer: expected shape={spec.shape}, found "
+                                f"shape={shape}"
+                            )
+E                           ValueError: in user code:
+E                           
+E                               File "/workspace/personal/kinetics/deeponet_long_training.py", line 122, in forward  *
+E                                   return p.model(features,training=False)
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 122, in error_handler  **
+E                                   raise e.with_traceback(filtered_tb) from None
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py", line 256, in assert_input_compatibility
+E                                   raise ValueError(
+E                           
+E                               ValueError: Input 0 with name 'common_state_logP_and_initial_phi' of layer 'temperature_pressure_initial_phi_deeponet' is incompatible with the layer: expected shape=(None, 12), found shape=(None, 11)
+
+../kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py:256: ValueError
+_____ test_exact_adam_rng_history_continuation_and_saved_gamma[1.0-tp_phi] _____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-0/test_exact_adam_rng_history_co7')
+family = 'tp_phi', gamma = 1.0
+
+    @pytest.mark.parametrize('family', FAMILIES)
+    @pytest.mark.parametrize('gamma', [.05, 1.])
+    def test_exact_adam_rng_history_continuation_and_saved_gamma(tmp_path, family, gamma):
+        x, y, cfg, _ = setup(family)
+>       whole = GammaTrainer(x, y, cfg, 11, family, gamma); whole.advance(5)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gamma_sweep.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+kinetics/gamma_sweep_training.py:61: in __init__
+    self.serial = SerialSteps(self)
+                  ^^^^^^^^^^^^^^^^^
+kinetics/deeponet_long_training.py:126: in __init__
+    forward.get_concrete_function()
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1256: in get_concrete_function
+    concrete = self._get_concrete_function_garbage_collected(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1226: in _get_concrete_function_garbage_collected
+    self._initialize(args, kwargs, add_initializers_to=initializers)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:696: in _initialize
+    self._concrete_variable_creation_fn = tracing_compilation.trace_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:178: in trace_function
+    concrete_function = _maybe_define_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:283: in _maybe_define_function
+    concrete_function = _create_concrete_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:310: in _create_concrete_function
+    traced_func_graph = func_graph_module.func_graph_from_py_func(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/framework/func_graph.py:1060: in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:599: in wrapped_fn
+    out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:52: in autograph_handler
+    raise e.ag_error_metadata.to_exception(e)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:41: in autograph_handler
+    return api.converted_call(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:439: in converted_call
+    result = converted_f(*effective_args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/__autograph_generated_file0or50il6.py:13: in tf__forward
+    retval_ = ag__.converted_call(ag__.ld(p).model, (ag__.ld(features),), dict(training=False), fscope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:331: in converted_call
+    return _call_unconverted(f, args, kwargs, options, False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:459: in _call_unconverted
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py:122: in error_handler
+    raise e.with_traceback(filtered_tb) from None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input_spec = [InputSpec(shape=(None, 12), ndim=2)]
+inputs = [<tf.Tensor 'features:0' shape=(None, 11) dtype=float32>]
+layer_name = 'temperature_pressure_initial_phi_deeponet'
+
+    def assert_input_compatibility(input_spec, inputs, layer_name):
+        """Checks compatibility between the layer and provided inputs.
+    
+        This checks that the tensor(s) `inputs` verify the input assumptions
+        of a layer (if any). If not, a clear and actional exception gets raised.
+    
+        Args:
+            input_spec: An InputSpec instance, list of InputSpec instances, a nested
+                structure of InputSpec instances, or None.
+            inputs: Input tensor, list of input tensors, or a nested structure of
+                input tensors.
+            layer_name: String, name of the layer (for error message formatting).
+    
+        Raises:
+            ValueError: in case of mismatch between
+                the provided inputs and the expectations of the layer.
+        """
+        if not input_spec:
+            return
+    
+        input_spec = tree.flatten(input_spec)
+        if isinstance(inputs, dict):
+            # Flatten `inputs` by reference order if input spec names are provided
+            names = [spec.name for spec in input_spec]
+            if all(names):
+                list_inputs = []
+                for name in names:
+                    if name not in inputs:
+                        raise ValueError(
+                            f'Missing data for input "{name}". '
+                            "You passed a data dictionary with keys "
+                            f"{list(inputs.keys())}. "
+                            f"Expected the following keys: {names}"
+                        )
+                    list_inputs.append(inputs[name])
+                inputs = list_inputs
+    
+        inputs = tree.flatten(inputs)
+        if len(inputs) != len(input_spec):
+            # Provide appropriate error message for dict inputs.
+            spec_names = [spec.name for spec in input_spec if spec is not None]
+            if len(spec_names) == len(input_spec) and all(spec_names):
+                raise ValueError(
+                    f'Layer "{layer_name}" expects {len(input_spec)} named '
+                    f"input(s) with keys {spec_names}, but it received "
+                    f"{len(inputs)} input tensors. Pass inputs as a dict, e.g. "
+                    "`layer({"
+                    + ", ".join(f"'{n}': ..." for n in spec_names)
+                    + "})`."
+                )
+            raise ValueError(
+                f'Layer "{layer_name}" expects {len(input_spec)} input(s),'
+                f" but it received {len(inputs)} input tensors. "
+                f"Inputs received: {inputs}"
+            )
+        for input_index, (x, spec) in enumerate(zip(inputs, input_spec)):
+            if spec is None:
+                continue
+            if x is None and spec.optional:
+                continue
+    
+            # Having a shape/dtype is the only commonality of the various
+            # tensor-like objects that may be passed. The most common kind of
+            # invalid type we are guarding for is a Layer instance (Functional API),
+            # which does not have a `shape` attribute.
+            if not hasattr(x, "shape"):
+                raise ValueError(
+                    f"Inputs to a layer should be tensors. Got '{x}' "
+                    f"(of type {type(x)}) as input for layer '{layer_name}'."
+                )
+    
+            shape = backend.standardize_shape(x.shape)
+            ndim = len(shape)
+            # Check ndim.
+            if spec.ndim is not None and not spec.allow_last_axis_squeeze:
+                if ndim != spec.ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected ndim={spec.ndim}, found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            if spec.max_ndim is not None:
+                if ndim is not None and ndim > spec.max_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected max_ndim={spec.max_ndim}, "
+                        f"found ndim={ndim}"
+                    )
+            if spec.min_ndim is not None:
+                if ndim is not None and ndim < spec.min_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected min_ndim={spec.min_ndim}, "
+                        f"found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            # Check dtype.
+            if spec.dtype is not None:
+                dtype = backend.standardize_dtype(x.dtype)
+                if dtype != spec.dtype:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected dtype={spec.dtype}, "
+                        f"found dtype={dtype}"
+                    )
+    
+            # Check specific shape axes.
+            if spec.axes:
+                for axis, value in spec.axes.items():
+                    if value is not None and shape[axis] not in {
+                        value,
+                        None,
+                    }:
+                        raise ValueError(
+                            f"Input {input_index} with name '{spec.name}' of layer "
+                            f"'{layer_name}' is incompatible with the layer: "
+                            f"expected axis {axis} of input shape to have value "
+                            f"{value}, but received input with shape {shape}"
+                        )
+            # Check shape.
+            if spec.shape is not None:
+                spec_shape = spec.shape
+                if spec.allow_last_axis_squeeze:
+                    if shape and shape[-1] == 1:
+                        shape = shape[:-1]
+                    if spec_shape and spec_shape[-1] == 1:
+                        spec_shape = spec_shape[:-1]
+                for spec_dim, dim in zip(spec_shape, shape):
+                    if spec_dim is not None and dim is not None:
+                        if spec_dim != dim:
+>                           raise ValueError(
+                                f"Input {input_index} with name '{spec.name}' of "
+                                f"layer '{layer_name}' is incompatible with the "
+                                f"layer: expected shape={spec.shape}, found "
+                                f"shape={shape}"
+                            )
+E                           ValueError: in user code:
+E                           
+E                               File "/workspace/personal/kinetics/deeponet_long_training.py", line 122, in forward  *
+E                                   return p.model(features,training=False)
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 122, in error_handler  **
+E                                   raise e.with_traceback(filtered_tb) from None
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py", line 256, in assert_input_compatibility
+E                                   raise ValueError(
+E                           
+E                               ValueError: Input 0 with name 'common_state_logP_and_initial_phi' of layer 'temperature_pressure_initial_phi_deeponet' is incompatible with the layer: expected shape=(None, 12), found shape=(None, 11)
+
+../kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py:256: ValueError
+___ test_pure_mse_matches_original_optimizer_without_soft_objective[tp_phi] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6b003f7bf0>
+family = 'tp_phi'
+
+    @pytest.mark.parametrize('family', FAMILIES)
+    def test_pure_mse_matches_original_optimizer_without_soft_objective(monkeypatch, family):
+        import kinetics.soft_constraint_training as soft
+        def forbidden(*a, **k):
+            raise AssertionError('Physical penalty must not enter this experiment')
+        monkeypatch.setattr(soft, 'SoftObjective', forbidden)
+        x, y, cfg, _ = setup(family)
+        p = make_predictor(family, .3, x, y, cfg, 11)
+        old = PressureTrainer(x, y, cfg, 11, predictor=p); old.advance(4)
+>       new = GammaTrainer(x, y, cfg, 11, family, .3); new.advance(4)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_gamma_sweep.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+kinetics/gamma_sweep_training.py:61: in __init__
+    self.serial = SerialSteps(self)
+                  ^^^^^^^^^^^^^^^^^
+kinetics/deeponet_long_training.py:126: in __init__
+    forward.get_concrete_function()
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1256: in get_concrete_function
+    concrete = self._get_concrete_function_garbage_collected(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:1226: in _get_concrete_function_garbage_collected
+    self._initialize(args, kwargs, add_initializers_to=initializers)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:696: in _initialize
+    self._concrete_variable_creation_fn = tracing_compilation.trace_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:178: in trace_function
+    concrete_function = _maybe_define_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:283: in _maybe_define_function
+    concrete_function = _create_concrete_function(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/tracing_compilation.py:310: in _create_concrete_function
+    traced_func_graph = func_graph_module.func_graph_from_py_func(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/framework/func_graph.py:1060: in func_graph_from_py_func
+    func_outputs = python_func(*func_args, **func_kwargs)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/polymorphic_function.py:599: in wrapped_fn
+    out = weak_wrapped_fn().__wrapped__(*args, **kwds)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:52: in autograph_handler
+    raise e.ag_error_metadata.to_exception(e)
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/eager/polymorphic_function/autograph_util.py:41: in autograph_handler
+    return api.converted_call(
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:439: in converted_call
+    result = converted_f(*effective_args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/tmp/__autograph_generated_file0or50il6.py:13: in tf__forward
+    retval_ = ag__.converted_call(ag__.ld(p).model, (ag__.ld(features),), dict(training=False), fscope)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:331: in converted_call
+    return _call_unconverted(f, args, kwargs, options, False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/tensorflow/python/autograph/impl/api.py:459: in _call_unconverted
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+../kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py:122: in error_handler
+    raise e.with_traceback(filtered_tb) from None
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+input_spec = [InputSpec(shape=(None, 12), ndim=2)]
+inputs = [<tf.Tensor 'features:0' shape=(None, 11) dtype=float32>]
+layer_name = 'temperature_pressure_initial_phi_deeponet'
+
+    def assert_input_compatibility(input_spec, inputs, layer_name):
+        """Checks compatibility between the layer and provided inputs.
+    
+        This checks that the tensor(s) `inputs` verify the input assumptions
+        of a layer (if any). If not, a clear and actional exception gets raised.
+    
+        Args:
+            input_spec: An InputSpec instance, list of InputSpec instances, a nested
+                structure of InputSpec instances, or None.
+            inputs: Input tensor, list of input tensors, or a nested structure of
+                input tensors.
+            layer_name: String, name of the layer (for error message formatting).
+    
+        Raises:
+            ValueError: in case of mismatch between
+                the provided inputs and the expectations of the layer.
+        """
+        if not input_spec:
+            return
+    
+        input_spec = tree.flatten(input_spec)
+        if isinstance(inputs, dict):
+            # Flatten `inputs` by reference order if input spec names are provided
+            names = [spec.name for spec in input_spec]
+            if all(names):
+                list_inputs = []
+                for name in names:
+                    if name not in inputs:
+                        raise ValueError(
+                            f'Missing data for input "{name}". '
+                            "You passed a data dictionary with keys "
+                            f"{list(inputs.keys())}. "
+                            f"Expected the following keys: {names}"
+                        )
+                    list_inputs.append(inputs[name])
+                inputs = list_inputs
+    
+        inputs = tree.flatten(inputs)
+        if len(inputs) != len(input_spec):
+            # Provide appropriate error message for dict inputs.
+            spec_names = [spec.name for spec in input_spec if spec is not None]
+            if len(spec_names) == len(input_spec) and all(spec_names):
+                raise ValueError(
+                    f'Layer "{layer_name}" expects {len(input_spec)} named '
+                    f"input(s) with keys {spec_names}, but it received "
+                    f"{len(inputs)} input tensors. Pass inputs as a dict, e.g. "
+                    "`layer({"
+                    + ", ".join(f"'{n}': ..." for n in spec_names)
+                    + "})`."
+                )
+            raise ValueError(
+                f'Layer "{layer_name}" expects {len(input_spec)} input(s),'
+                f" but it received {len(inputs)} input tensors. "
+                f"Inputs received: {inputs}"
+            )
+        for input_index, (x, spec) in enumerate(zip(inputs, input_spec)):
+            if spec is None:
+                continue
+            if x is None and spec.optional:
+                continue
+    
+            # Having a shape/dtype is the only commonality of the various
+            # tensor-like objects that may be passed. The most common kind of
+            # invalid type we are guarding for is a Layer instance (Functional API),
+            # which does not have a `shape` attribute.
+            if not hasattr(x, "shape"):
+                raise ValueError(
+                    f"Inputs to a layer should be tensors. Got '{x}' "
+                    f"(of type {type(x)}) as input for layer '{layer_name}'."
+                )
+    
+            shape = backend.standardize_shape(x.shape)
+            ndim = len(shape)
+            # Check ndim.
+            if spec.ndim is not None and not spec.allow_last_axis_squeeze:
+                if ndim != spec.ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected ndim={spec.ndim}, found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            if spec.max_ndim is not None:
+                if ndim is not None and ndim > spec.max_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected max_ndim={spec.max_ndim}, "
+                        f"found ndim={ndim}"
+                    )
+            if spec.min_ndim is not None:
+                if ndim is not None and ndim < spec.min_ndim:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected min_ndim={spec.min_ndim}, "
+                        f"found ndim={ndim}. "
+                        f"Full shape received: {shape}"
+                    )
+            # Check dtype.
+            if spec.dtype is not None:
+                dtype = backend.standardize_dtype(x.dtype)
+                if dtype != spec.dtype:
+                    raise ValueError(
+                        f"Input {input_index} with name '{spec.name}' of layer "
+                        f"'{layer_name}' is incompatible with the layer: "
+                        f"expected dtype={spec.dtype}, "
+                        f"found dtype={dtype}"
+                    )
+    
+            # Check specific shape axes.
+            if spec.axes:
+                for axis, value in spec.axes.items():
+                    if value is not None and shape[axis] not in {
+                        value,
+                        None,
+                    }:
+                        raise ValueError(
+                            f"Input {input_index} with name '{spec.name}' of layer "
+                            f"'{layer_name}' is incompatible with the layer: "
+                            f"expected axis {axis} of input shape to have value "
+                            f"{value}, but received input with shape {shape}"
+                        )
+            # Check shape.
+            if spec.shape is not None:
+                spec_shape = spec.shape
+                if spec.allow_last_axis_squeeze:
+                    if shape and shape[-1] == 1:
+                        shape = shape[:-1]
+                    if spec_shape and spec_shape[-1] == 1:
+                        spec_shape = spec_shape[:-1]
+                for spec_dim, dim in zip(spec_shape, shape):
+                    if spec_dim is not None and dim is not None:
+                        if spec_dim != dim:
+>                           raise ValueError(
+                                f"Input {input_index} with name '{spec.name}' of "
+                                f"layer '{layer_name}' is incompatible with the "
+                                f"layer: expected shape={spec.shape}, found "
+                                f"shape={shape}"
+                            )
+E                           ValueError: in user code:
+E                           
+E                               File "/workspace/personal/kinetics/deeponet_long_training.py", line 122, in forward  *
+E                                   return p.model(features,training=False)
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 122, in error_handler  **
+E                                   raise e.with_traceback(filtered_tb) from None
+E                               File "/workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py", line 256, in assert_input_compatibility
+E                                   raise ValueError(
+E                           
+E                               ValueError: Input 0 with name 'common_state_logP_and_initial_phi' of layer 'temperature_pressure_initial_phi_deeponet' is incompatible with the layer: expected shape=(None, 12), found shape=(None, 11)
+
+../kinetics-venv/lib/python3.12/site-packages/keras/src/layers/input_spec.py:256: ValueError
+=============================== warnings summary ===============================
+tests/test_gamma_sweep.py: 48 warnings
+  /workspace/kinetics-venv/lib/python3.12/site-packages/keras/src/backend/tensorflow/core.py:172: DeprecationWarning: __array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments. To learn more, see the migration guide https://numpy.org/devdocs/numpy_2_0_migration_guide.html#adapting-to-changes-in-the-copy-keyword
+    return np.array(x)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_gamma_sweep.py::test_exact_adam_rng_history_continuation_and_saved_gamma[0.05-tp_phi]
+FAILED tests/test_gamma_sweep.py::test_exact_adam_rng_history_continuation_and_saved_gamma[1.0-tp_phi]
+FAILED tests/test_gamma_sweep.py::test_pure_mse_matches_original_optimizer_without_soft_objective[tp_phi]
+3 failed, 56 passed, 48 warnings in 39.71s

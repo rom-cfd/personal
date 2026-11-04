@@ -1,0 +1,22 @@
+{
+  "base_config": "configs/ann_deeponet_mean10.json",
+  "baseline_origin": "results/soft_constraint_10k/run_001",
+  "output": "results/gamma_sweep/run_001",
+  "gammas": [0.05, 0.1, 0.2, 0.3, 0.5, 1.0],
+  "reference_gamma": 0.1,
+  "families": ["ann", "p_only", "tp", "tp_phi"],
+  "updates_per_member": 10000,
+  "checkpoint_every": 2000,
+  "observe_every": 1000,
+  "member_budget_seconds": 150,
+  "total_budget_seconds": 43200,
+  "training_budget_seconds": 30600,
+  "evaluation_budget_seconds": 10800,
+  "report_reserve_seconds": 1800,
+  "evaluation_splits": ["val", "test"],
+  "modes": ["raw", "repaired"],
+  "loss": "transformed_residual_MSE_only",
+  "selection": "validation_repaired_completion_then_temperature_NRMSE_on_common_ICs",
+  "test_used_for_selection": false,
+  "budget_authorization": "User: keep the same per-model time limit as the previous experiment; previous18000 training seconds/120 members =150 seconds. Commit and push before starting."
+}
