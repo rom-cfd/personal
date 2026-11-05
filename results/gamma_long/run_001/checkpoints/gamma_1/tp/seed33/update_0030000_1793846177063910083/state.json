@@ -1,0 +1,4064 @@
+{
+  "format_version": 1,
+  "seed": 33,
+  "update": 30000,
+  "signature": {
+    "config": {
+      "source": "results/long10ms_data/trajectories.npz",
+      "training_pairs": "results/long10ms_data/training_pairs.npz",
+      "ann_root": "results/committee100_long10ms",
+      "output": "results/ann_deeponet_mean10/run_001",
+      "dt": 2e-06,
+      "horizon": 0.01,
+      "seeds": [
+        11,
+        22,
+        33,
+        44,
+        55,
+        66,
+        77,
+        88,
+        99,
+        110
+      ],
+      "gamma": 1.0,
+      "input_partition": "current_Y9__current_T_logP",
+      "branch_layers": [
+        64,
+        64
+      ],
+      "trunk_layers": [
+        32
+      ],
+      "latent_width": 7,
+      "learning_rate": 0.001,
+      "batch_size": 512,
+      "updates_per_member": 10000,
+      "modes": [
+        "raw",
+        "repaired"
+      ],
+      "one_step_chunk_size": 512,
+      "physics_backend": "vectorized_nasa",
+      "test_used_for_selection": false,
+      "hidden_layers": [
+        64,
+        64,
+        64
+      ],
+      "activation": "tanh"
+    },
+    "x_sha256": "16f27e2f91d3a0ac1788adbb04dafc624c42b2b7c18222a8b874c826c81fbdd4",
+    "y_sha256": "5354a1e1b96488eafb6a8a646be3e928656b06e2b963965c05c716db9e934739",
+    "source_sha256": {
+      "p_only_deeponet.py": "24eea187e068dadcfb13e99ff06dfc1a87ac56305cffe4b8566b6575bdf68df5",
+      "p_only_training.py": "c3a09d8fe1a2ff61db688e6fae10d7f4b7f5060bc1439b46532b9d32e4435c0b",
+      "deeponet.py": "539cbcf9681e5e695d27b87378a9e958fe43ee6b8d3ad1f2d04abb4f0d795799",
+      "study.py": "a949b5f4b411f5697dd260a4f98ae5ac72638129beed8d82a74a34c5372f1ecb",
+      "transforms.py": "372c688c482f9c892260462e214597594854224ea8448d0a1b1d31a8264b6c4a"
+    },
+    "versions": {
+      "tensorflow_cpu": "2.20.0",
+      "keras": "3.15.1",
+      "numpy": "2.5.4"
+    },
+    "onednn": "0",
+    "tensorflow_intra_threads": 2,
+    "tensorflow_inter_threads": 1,
+    "family": "tp",
+    "gamma": 1.0,
+    "loss": "transformed_residual_MSE_only",
+    "gamma_source_sha256": {
+      "kinetics/gamma_sweep_evaluation.py": "a5b0986743caf7564cbccd39a096de32bfff4875657c9b529f27f930e6bd6630",
+      "kinetics/gamma_sweep_study.py": "73526e7f5f7cca5efade0e6610055e835958fa870425617cde5afa48bac26d36",
+      "kinetics/gamma_sweep_training.py": "21ba9948f89bb8d0913c3acc0a4c25d395e2e026383026c496a8c88ee35273e4"
+    },
+    "serial_engine_sha256": "e9580fd25b9817cc6977290fb5f15db5a7c5288c42644c4f3d031d20e2519c41",
+    "phi_source_sha256": {
+      "kinetics/tp_phi_deeponet.py": "720448521c9ceac487181774d942df608fbeb0325b5f5b9a2b881cdb17e8bd66",
+      "kinetics/tp_phi_evaluation.py": "f3cc5c412caf6b29008972c73fddea7eea6d8998d1ec6df9e06351aab93f3e44",
+      "kinetics/tp_phi_report.py": "1d4d135b4494151631582effd871148d6a864da5743db6a642f6bdedf37abe9a",
+      "kinetics/tp_phi_study.py": "f6d3aaa400beb65f1f03a5d114fd92bd756ddcd7290a2368c1af158b9939316f",
+      "kinetics/tp_phi_training.py": "48ac3c5769d9f0eb7b4c3e4356a512a5a259b10ff20c1e8ba9ba56fce2d3a847"
+    }
+  },
+  "optimizer_variables": [
+    {
+      "name": "iteration",
+      "shape": []
+    },
+    {
+      "name": "learning_rate",
+      "shape": []
+    },
+    {
+      "name": "branch_0_kernel_momentum",
+      "shape": [
+        9,
+        64
+      ]
+    },
+    {
+      "name": "branch_0_kernel_velocity",
+      "shape": [
+        9,
+        64
+      ]
+    },
+    {
+      "name": "branch_0_bias_momentum",
+      "shape": [
+        64
+      ]
+    },
+    {
+      "name": "branch_0_bias_velocity",
+      "shape": [
+        64
+      ]
+    },
+    {
+      "name": "branch_1_kernel_momentum",
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "name": "branch_1_kernel_velocity",
+      "shape": [
+        64,
+        64
+      ]
+    },
+    {
+      "name": "branch_1_bias_momentum",
+      "shape": [
+        64
+      ]
+    },
+    {
+      "name": "branch_1_bias_velocity",
+      "shape": [
+        64
+      ]
+    },
+    {
+      "name": "branch_coefficients_kernel_momentum",
+      "shape": [
+        64,
+        70
+      ]
+    },
+    {
+      "name": "branch_coefficients_kernel_velocity",
+      "shape": [
+        64,
+        70
+      ]
+    },
+    {
+      "name": "branch_coefficients_bias_momentum",
+      "shape": [
+        70
+      ]
+    },
+    {
+      "name": "branch_coefficients_bias_velocity",
+      "shape": [
+        70
+      ]
+    },
+    {
+      "name": "trunk_0_kernel_momentum",
+      "shape": [
+        2,
+        32
+      ]
+    },
+    {
+      "name": "trunk_0_kernel_velocity",
+      "shape": [
+        2,
+        32
+      ]
+    },
+    {
+      "name": "trunk_0_bias_momentum",
+      "shape": [
+        32
+      ]
+    },
+    {
+      "name": "trunk_0_bias_velocity",
+      "shape": [
+        32
+      ]
+    },
+    {
+      "name": "thermo_basis_kernel_momentum",
+      "shape": [
+        32,
+        7
+      ]
+    },
+    {
+      "name": "thermo_basis_kernel_velocity",
+      "shape": [
+        32,
+        7
+      ]
+    },
+    {
+      "name": "thermo_basis_bias_momentum",
+      "shape": [
+        7
+      ]
+    },
+    {
+      "name": "thermo_basis_bias_velocity",
+      "shape": [
+        7
+      ]
+    },
+    {
+      "name": "component_residual_output_bias_momentum",
+      "shape": [
+        10
+      ]
+    },
+    {
+      "name": "component_residual_output_bias_velocity",
+      "shape": [
+        10
+      ]
+    }
+  ],
+  "optimizer_iteration": 30000,
+  "learning_rate": 9.999999747378752e-05,
+  "rng_state": {
+    "bit_generator": "PCG64",
+    "state": {
+      "state": 131505069551762223250614055879944465306,
+      "inc": 188490382446918006255810903505410875475
+    },
+    "has_uint32": 1,
+    "uinteger": 2873404288
+  },
+  "tf_rng_state": [
+    33,
+    0,
+    0
+  ],
+  "tf_rng_algorithm": 1,
+  "history": [
+    {
+      "seed": 33,
+      "update": 1,
+      "loss": 0.029809707775712013,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 50,
+      "loss": 0.03236349672079086,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 100,
+      "loss": 0.011654866859316826,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 150,
+      "loss": 0.024345150217413902,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 200,
+      "loss": 0.015074518509209156,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 250,
+      "loss": 0.020606203004717827,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 300,
+      "loss": 0.010618125088512897,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 350,
+      "loss": 0.017150629311800003,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 400,
+      "loss": 0.011579969897866249,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 450,
+      "loss": 0.004173808731138706,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 500,
+      "loss": 0.025087419897317886,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 550,
+      "loss": 0.007380717433989048,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 600,
+      "loss": 0.00432556914165616,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 650,
+      "loss": 0.010246917605400085,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 700,
+      "loss": 0.019555475562810898,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 750,
+      "loss": 0.011102544143795967,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 800,
+      "loss": 0.0060990056954324245,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 850,
+      "loss": 0.011666083708405495,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 900,
+      "loss": 0.00736965099349618,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 950,
+      "loss": 0.006721951998770237,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1000,
+      "loss": 0.007040536962449551,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1050,
+      "loss": 0.0032692812383174896,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1100,
+      "loss": 0.0042915260419249535,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1150,
+      "loss": 0.0062997834756970406,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1200,
+      "loss": 0.006036761216819286,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1250,
+      "loss": 0.004681770224124193,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1300,
+      "loss": 0.0020434982143342495,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1350,
+      "loss": 0.005283791106194258,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1400,
+      "loss": 0.0032657156698405743,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1450,
+      "loss": 0.010150371119379997,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1500,
+      "loss": 0.0013929033884778619,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1550,
+      "loss": 0.007234504912048578,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1600,
+      "loss": 0.006509594619274139,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1650,
+      "loss": 0.01310364156961441,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1700,
+      "loss": 0.0044546714052557945,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1750,
+      "loss": 0.0044216131791472435,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1800,
+      "loss": 0.005138698033988476,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1850,
+      "loss": 0.0022298258263617754,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1900,
+      "loss": 0.0016318794805556536,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 1950,
+      "loss": 0.019237959757447243,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2000,
+      "loss": 0.005900553427636623,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2050,
+      "loss": 0.011128108017146587,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2100,
+      "loss": 0.010458547621965408,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2150,
+      "loss": 0.013923394493758678,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2200,
+      "loss": 0.0035464384127408266,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2250,
+      "loss": 0.016987275332212448,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2300,
+      "loss": 0.003388442099094391,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2350,
+      "loss": 0.008168389089405537,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2400,
+      "loss": 0.004959241487085819,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2450,
+      "loss": 0.004016542807221413,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2500,
+      "loss": 0.003637445392087102,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2550,
+      "loss": 0.008374406956136227,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2600,
+      "loss": 0.004892049822956324,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2650,
+      "loss": 0.0036749872379004955,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2700,
+      "loss": 0.004287117160856724,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2750,
+      "loss": 0.0034713461063802242,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2800,
+      "loss": 0.003938471898436546,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2850,
+      "loss": 0.0030528127681463957,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2900,
+      "loss": 0.0037421330343931913,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 2950,
+      "loss": 0.0044157844968140125,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3000,
+      "loss": 0.0037970703560858965,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3050,
+      "loss": 0.004945375025272369,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3100,
+      "loss": 0.00481141684576869,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3150,
+      "loss": 0.006862935610115528,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3200,
+      "loss": 0.0023062988184392452,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3250,
+      "loss": 0.008909562602639198,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3300,
+      "loss": 0.0037140653003007174,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3350,
+      "loss": 0.010318974032998085,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3400,
+      "loss": 0.0031549744307994843,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3450,
+      "loss": 0.0028505863156169653,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3500,
+      "loss": 0.006280075758695602,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3550,
+      "loss": 0.0041181594133377075,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3600,
+      "loss": 0.006027215626090765,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3650,
+      "loss": 0.0016401842003688216,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3700,
+      "loss": 0.009891767986118793,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3750,
+      "loss": 0.013467910699546337,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3800,
+      "loss": 0.0022780082654207945,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3850,
+      "loss": 0.004057413898408413,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3900,
+      "loss": 0.004150343593209982,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 3950,
+      "loss": 0.003984032664448023,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4000,
+      "loss": 0.016117284074425697,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4050,
+      "loss": 0.0024187599774450064,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4100,
+      "loss": 0.004317932762205601,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4150,
+      "loss": 0.0011910771718248725,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4200,
+      "loss": 0.0028333168011158705,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4250,
+      "loss": 0.00203316705301404,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4300,
+      "loss": 0.002887249458581209,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4350,
+      "loss": 0.0025700354017317295,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4400,
+      "loss": 0.001971809659153223,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4450,
+      "loss": 0.0037935287691652775,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4500,
+      "loss": 0.002647318644449115,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4550,
+      "loss": 0.0029111176263540983,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4600,
+      "loss": 0.0028182759415358305,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4650,
+      "loss": 0.002431177068501711,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4700,
+      "loss": 0.0022902125492691994,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4750,
+      "loss": 0.0019273515790700912,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4800,
+      "loss": 0.004924233071506023,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4850,
+      "loss": 0.0032117136288434267,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4900,
+      "loss": 0.008347371593117714,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 4950,
+      "loss": 0.006997779011726379,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5000,
+      "loss": 0.005394410341978073,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5050,
+      "loss": 0.0033800103701651096,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5100,
+      "loss": 0.007098761852830648,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5150,
+      "loss": 0.004041748587042093,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5200,
+      "loss": 0.0037997481413185596,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5250,
+      "loss": 0.0018482739105820656,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5300,
+      "loss": 0.0021344597917050123,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5350,
+      "loss": 0.005788090173155069,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5400,
+      "loss": 0.004258040338754654,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5450,
+      "loss": 0.002126123756170273,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5500,
+      "loss": 0.0019246649462729692,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5550,
+      "loss": 0.007397398352622986,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5600,
+      "loss": 0.0020566959865391254,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5650,
+      "loss": 0.00432157889008522,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5700,
+      "loss": 0.0016739284619688988,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5750,
+      "loss": 0.004967807326465845,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5800,
+      "loss": 0.0041035874746739864,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5850,
+      "loss": 0.0045631821267306805,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5900,
+      "loss": 0.0029805349186062813,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 5950,
+      "loss": 0.006165427155792713,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 6000,
+      "loss": 0.0014618448913097382,
+      "learning_rate": 0.001
+    },
+    {
+      "seed": 33,
+      "update": 6001,
+      "loss": 0.0034937828313559294,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6050,
+      "loss": 0.004283749498426914,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6100,
+      "loss": 0.007391707040369511,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6150,
+      "loss": 0.0038381542544811964,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6200,
+      "loss": 0.0018202755600214005,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6250,
+      "loss": 0.006657036952674389,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6300,
+      "loss": 0.0030247617978602648,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6350,
+      "loss": 0.004085656721144915,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6400,
+      "loss": 0.007385879755020142,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6450,
+      "loss": 0.003433539066463709,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6500,
+      "loss": 0.007320168428122997,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6550,
+      "loss": 0.006257005035877228,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6600,
+      "loss": 0.0039697857573628426,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6650,
+      "loss": 0.0009892589878290892,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6700,
+      "loss": 0.0009258562931790948,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6750,
+      "loss": 0.0019808702636510134,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6800,
+      "loss": 0.002796978922560811,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6850,
+      "loss": 0.007592611014842987,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6900,
+      "loss": 0.0020803906954824924,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 6950,
+      "loss": 0.0023278011940419674,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7000,
+      "loss": 0.007798054721206427,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7050,
+      "loss": 0.0022135931067168713,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7100,
+      "loss": 0.005287427920848131,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7150,
+      "loss": 0.002304136287420988,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7200,
+      "loss": 0.004253358580172062,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7250,
+      "loss": 0.005469950381666422,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7300,
+      "loss": 0.0019240526016801596,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7350,
+      "loss": 0.0015495925908908248,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7400,
+      "loss": 0.0037573191802948713,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7450,
+      "loss": 0.0031378299463540316,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7500,
+      "loss": 0.003282206831499934,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7550,
+      "loss": 0.007155030965805054,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7600,
+      "loss": 0.0032978132367134094,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7650,
+      "loss": 0.0031223399564623833,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7700,
+      "loss": 0.0035861048381775618,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7750,
+      "loss": 0.002882337896153331,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7800,
+      "loss": 0.005829707719385624,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7850,
+      "loss": 0.002328690607100725,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7900,
+      "loss": 0.0013884666841477156,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 7950,
+      "loss": 0.006703924387693405,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8000,
+      "loss": 0.004132288508117199,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8050,
+      "loss": 0.0032682113815099,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8100,
+      "loss": 0.0039048269391059875,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8150,
+      "loss": 0.0022860337048768997,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8200,
+      "loss": 0.002303136745467782,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8250,
+      "loss": 0.002001233631744981,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8300,
+      "loss": 0.003397777210921049,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8350,
+      "loss": 0.0029044896364212036,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8400,
+      "loss": 0.00447600893676281,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8450,
+      "loss": 0.0023050117306411266,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8500,
+      "loss": 0.004655678756535053,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8550,
+      "loss": 0.0018698159838095307,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8600,
+      "loss": 0.0008840246009640396,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8650,
+      "loss": 0.001705586677417159,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8700,
+      "loss": 0.0027655395679175854,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8750,
+      "loss": 0.0035304457414895296,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8800,
+      "loss": 0.001712060533463955,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8850,
+      "loss": 0.0025012348778545856,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8900,
+      "loss": 0.003122366964817047,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 8950,
+      "loss": 0.0037659357767552137,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 9000,
+      "loss": 0.003064975840970874,
+      "learning_rate": 0.0003
+    },
+    {
+      "seed": 33,
+      "update": 9001,
+      "loss": 0.0009136808221228421,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9050,
+      "loss": 0.0026831317227333784,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9100,
+      "loss": 0.0009401693823747337,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9150,
+      "loss": 0.0018789140740409493,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9200,
+      "loss": 0.005727853160351515,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9250,
+      "loss": 0.0024564662016928196,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9300,
+      "loss": 0.001138211926445365,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9350,
+      "loss": 0.0013630212051793933,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9400,
+      "loss": 0.0017293088603764772,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9450,
+      "loss": 0.005139087792485952,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9500,
+      "loss": 0.0033841668628156185,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9550,
+      "loss": 0.004902170039713383,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9600,
+      "loss": 0.0010768731590360403,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9650,
+      "loss": 0.0035504642874002457,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9700,
+      "loss": 0.0013502320507541299,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9750,
+      "loss": 0.006965083070099354,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9800,
+      "loss": 0.0015041996957734227,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9850,
+      "loss": 0.0032028239220380783,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9900,
+      "loss": 0.00318298302590847,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 9950,
+      "loss": 0.0022426822688430548,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10000,
+      "loss": 0.00321064586751163,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10050,
+      "loss": 0.007165037095546722,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10100,
+      "loss": 0.005238082725554705,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10150,
+      "loss": 0.004704548045992851,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10200,
+      "loss": 0.0022148601710796356,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10250,
+      "loss": 0.002155123045668006,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10300,
+      "loss": 0.0023418613709509373,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10350,
+      "loss": 0.0016655891668051481,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10400,
+      "loss": 0.002047919202595949,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10450,
+      "loss": 0.0012778888922184706,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10500,
+      "loss": 0.0019321292638778687,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10550,
+      "loss": 0.002154443645849824,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10600,
+      "loss": 0.004725828301161528,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10650,
+      "loss": 0.0030241345521062613,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10700,
+      "loss": 0.001959994900971651,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10750,
+      "loss": 0.004433286841958761,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10800,
+      "loss": 0.0037396098487079144,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10850,
+      "loss": 0.00450884597375989,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10900,
+      "loss": 0.0017608649795874953,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 10950,
+      "loss": 0.0014521414414048195,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11000,
+      "loss": 0.0009421709110029042,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11050,
+      "loss": 0.0028825991321355104,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11100,
+      "loss": 0.0016153010074049234,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11150,
+      "loss": 0.0008197168936021626,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11200,
+      "loss": 0.002371812704950571,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11250,
+      "loss": 0.005268854089081287,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11300,
+      "loss": 0.0028148300480097532,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11350,
+      "loss": 0.001245441846549511,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11400,
+      "loss": 0.0021895766258239746,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11450,
+      "loss": 0.0013284881133586168,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11500,
+      "loss": 0.0026114252395927906,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11550,
+      "loss": 0.002178116701543331,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11600,
+      "loss": 0.0012967665679752827,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11650,
+      "loss": 0.003762098727747798,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11700,
+      "loss": 0.004132652189582586,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11750,
+      "loss": 0.001882760552689433,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11800,
+      "loss": 0.0021493672393262386,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11850,
+      "loss": 0.0006738866795785725,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11900,
+      "loss": 0.0065244934521615505,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 11950,
+      "loss": 0.002112891525030136,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12000,
+      "loss": 0.001355413463898003,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12050,
+      "loss": 0.0017076076474040747,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12100,
+      "loss": 0.0060967979952692986,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12150,
+      "loss": 0.003039299277588725,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12200,
+      "loss": 0.001819292432628572,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12250,
+      "loss": 0.0025166876148432493,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12300,
+      "loss": 0.004773265682160854,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12350,
+      "loss": 0.004490806721150875,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12400,
+      "loss": 0.002321351785212755,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12450,
+      "loss": 0.0026282072067260742,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12500,
+      "loss": 0.0028123788069933653,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12550,
+      "loss": 0.003444269997999072,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12600,
+      "loss": 0.003277970477938652,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12650,
+      "loss": 0.0041516562923789024,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12700,
+      "loss": 0.0006099343299865723,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12750,
+      "loss": 0.005591475870460272,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12800,
+      "loss": 0.000943357590585947,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12850,
+      "loss": 0.0053106509149074554,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12900,
+      "loss": 0.0048133558593690395,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 12950,
+      "loss": 0.003421846078708768,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13000,
+      "loss": 0.0016733476659283042,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13050,
+      "loss": 0.0019509283592924476,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13100,
+      "loss": 0.0025126037653535604,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13150,
+      "loss": 0.002743369434028864,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13200,
+      "loss": 0.00181671476457268,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13250,
+      "loss": 0.005145914852619171,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13300,
+      "loss": 0.0037603124510496855,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13350,
+      "loss": 0.001612395979464054,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13400,
+      "loss": 0.0016223855782300234,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13450,
+      "loss": 0.0007959650829434395,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13500,
+      "loss": 0.0012127446243539453,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13550,
+      "loss": 0.0016031799605116248,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13600,
+      "loss": 0.0005335182650014758,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13650,
+      "loss": 0.0021982439793646336,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13700,
+      "loss": 0.0014489555032923818,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13750,
+      "loss": 0.0022276577074080706,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13800,
+      "loss": 0.0023577772080898285,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13850,
+      "loss": 0.00308201159350574,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13900,
+      "loss": 0.0016271108761429787,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 13950,
+      "loss": 0.0014533379580825567,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14000,
+      "loss": 0.002410271903499961,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14050,
+      "loss": 0.002252456033602357,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14100,
+      "loss": 0.0014400926884263754,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14150,
+      "loss": 0.0007434110157191753,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14200,
+      "loss": 0.0018603317439556122,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14250,
+      "loss": 0.0020340208429843187,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14300,
+      "loss": 0.001630541868507862,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14350,
+      "loss": 0.001977174775674939,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14400,
+      "loss": 0.002071040915325284,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14450,
+      "loss": 0.0032263793982565403,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14500,
+      "loss": 0.0018832928035408258,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14550,
+      "loss": 0.005169401876628399,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14600,
+      "loss": 0.0020488533191382885,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14650,
+      "loss": 0.002506389282643795,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14700,
+      "loss": 0.002784585114568472,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14750,
+      "loss": 0.003445897251367569,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14800,
+      "loss": 0.0013014735886827111,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14850,
+      "loss": 0.002566899871453643,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14900,
+      "loss": 0.0032896578777581453,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 14950,
+      "loss": 0.0022756396792829037,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15000,
+      "loss": 0.0034072822891175747,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15050,
+      "loss": 0.0033038253895938396,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15100,
+      "loss": 0.0010595654603093863,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15150,
+      "loss": 0.004788690246641636,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15200,
+      "loss": 0.002181354444473982,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15250,
+      "loss": 0.0027993705589324236,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15300,
+      "loss": 0.0014427120331674814,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15350,
+      "loss": 0.0011278020683676004,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15400,
+      "loss": 0.001698987907730043,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15450,
+      "loss": 0.0016290787607431412,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15500,
+      "loss": 0.0018106105271726847,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15550,
+      "loss": 0.0018592525739222765,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15600,
+      "loss": 0.002512413775548339,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15650,
+      "loss": 0.001085373805835843,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15700,
+      "loss": 0.0016914702719077468,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15750,
+      "loss": 0.0014886995777487755,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15800,
+      "loss": 0.0012309985468164086,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15850,
+      "loss": 0.0020672969985753298,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15900,
+      "loss": 0.0022111013531684875,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 15950,
+      "loss": 0.0013229132164269686,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16000,
+      "loss": 0.0010742527665570378,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16050,
+      "loss": 0.0021790354512631893,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16100,
+      "loss": 0.002068242523819208,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16150,
+      "loss": 0.0034367330372333527,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16200,
+      "loss": 0.0015903599560260773,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16250,
+      "loss": 0.0028959084302186966,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16300,
+      "loss": 0.004520406015217304,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16350,
+      "loss": 0.001527403830550611,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16400,
+      "loss": 0.0017640877049416304,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16450,
+      "loss": 0.0019858931191265583,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16500,
+      "loss": 0.003230171976611018,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16550,
+      "loss": 0.003881547600030899,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16600,
+      "loss": 0.0007729508215561509,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16650,
+      "loss": 0.0023969155736267567,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16700,
+      "loss": 0.0014535521622747183,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16750,
+      "loss": 0.0025971748400479555,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16800,
+      "loss": 0.001142554567195475,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16850,
+      "loss": 0.0006708043511025608,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16900,
+      "loss": 0.0017371159046888351,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 16950,
+      "loss": 0.002534143626689911,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17000,
+      "loss": 0.0035960034001618624,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17050,
+      "loss": 0.0011975665111094713,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17100,
+      "loss": 0.004767264239490032,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17150,
+      "loss": 0.0023452427703887224,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17200,
+      "loss": 0.002520787762477994,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17250,
+      "loss": 0.0026690366212278605,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17300,
+      "loss": 0.0017039813101291656,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17350,
+      "loss": 0.004844965413212776,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17400,
+      "loss": 0.003701102454215288,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17450,
+      "loss": 0.0010990421287715435,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17500,
+      "loss": 0.0031921889167279005,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17550,
+      "loss": 0.001674572704359889,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17600,
+      "loss": 0.0015405340818688273,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17650,
+      "loss": 0.004182533361017704,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17700,
+      "loss": 0.0015897981356829405,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17750,
+      "loss": 0.0015928598586469889,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17800,
+      "loss": 0.0015830602496862411,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17850,
+      "loss": 0.0036092381924390793,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17900,
+      "loss": 0.0015225723618641496,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 17950,
+      "loss": 0.0010535139590501785,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18000,
+      "loss": 0.0015386379091069102,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18050,
+      "loss": 0.0038664296735078096,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18100,
+      "loss": 0.0029990910552442074,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18150,
+      "loss": 0.0019820688758045435,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18200,
+      "loss": 0.001480625243857503,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18250,
+      "loss": 0.0010580687085166574,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18300,
+      "loss": 0.0026499941013753414,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18350,
+      "loss": 0.002686101710423827,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18400,
+      "loss": 0.0025866057258099318,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18450,
+      "loss": 0.003374134423211217,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18500,
+      "loss": 0.004137617535889149,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18550,
+      "loss": 0.0038154441863298416,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18600,
+      "loss": 0.0009460151195526123,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18650,
+      "loss": 0.002660125959664583,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18700,
+      "loss": 0.004646772518754005,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18750,
+      "loss": 0.0012134697753936052,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18800,
+      "loss": 0.0015749825397506356,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18850,
+      "loss": 0.005248812027275562,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18900,
+      "loss": 0.0018089499790221453,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 18950,
+      "loss": 0.00155773910228163,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19000,
+      "loss": 0.003267529886215925,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19050,
+      "loss": 0.0015178918838500977,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19100,
+      "loss": 0.002301655011251569,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19150,
+      "loss": 0.0011335813906043768,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19200,
+      "loss": 0.0021630118135362864,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19250,
+      "loss": 0.0017835358157753944,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19300,
+      "loss": 0.0023747296072542667,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19350,
+      "loss": 0.006005945615470409,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19400,
+      "loss": 0.0027419114485383034,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19450,
+      "loss": 0.003676238004118204,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19500,
+      "loss": 0.0010882329661399126,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19550,
+      "loss": 0.002526487223803997,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19600,
+      "loss": 0.0013789075892418623,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19650,
+      "loss": 0.003806058783084154,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19700,
+      "loss": 0.002852868987247348,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19750,
+      "loss": 0.0008810756844468415,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19800,
+      "loss": 0.0018281781813129783,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19850,
+      "loss": 0.0013577929930761456,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19900,
+      "loss": 0.0013579472433775663,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 19950,
+      "loss": 0.002477185567840934,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20000,
+      "loss": 0.0012937069404870272,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20050,
+      "loss": 0.0017184594180434942,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20100,
+      "loss": 0.0018968114163726568,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20150,
+      "loss": 0.0018746517598628998,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20200,
+      "loss": 0.0017608364578336477,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20250,
+      "loss": 0.001465263543650508,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20300,
+      "loss": 0.0032599724363535643,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20350,
+      "loss": 0.0023001551162451506,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20400,
+      "loss": 0.0010139124933630228,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20450,
+      "loss": 0.002595475409179926,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20500,
+      "loss": 0.0016993224853649735,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20550,
+      "loss": 0.0012678306084126234,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20600,
+      "loss": 0.0016434028511866927,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20650,
+      "loss": 0.00182318442966789,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20700,
+      "loss": 0.001953334081918001,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20750,
+      "loss": 0.002661785576492548,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20800,
+      "loss": 0.002191828563809395,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20850,
+      "loss": 0.0008239252492785454,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20900,
+      "loss": 0.0020762805361300707,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 20950,
+      "loss": 0.0026562598068267107,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21000,
+      "loss": 0.002349201822653413,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21050,
+      "loss": 0.0012826109305024147,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21100,
+      "loss": 0.001580852665938437,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21150,
+      "loss": 0.004717598203569651,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21200,
+      "loss": 0.0013677123934030533,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21250,
+      "loss": 0.002108484972268343,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21300,
+      "loss": 0.0013996241614222527,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21350,
+      "loss": 0.0015319662634283304,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21400,
+      "loss": 0.0021456305403262377,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21450,
+      "loss": 0.001994213555008173,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21500,
+      "loss": 0.004582204855978489,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21550,
+      "loss": 0.0011204176116734743,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21600,
+      "loss": 0.001431112177670002,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21650,
+      "loss": 0.003374722320586443,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21700,
+      "loss": 0.0016995096812024713,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21750,
+      "loss": 0.0015033051604405046,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21800,
+      "loss": 0.004460794851183891,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21850,
+      "loss": 0.0037173666059970856,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21900,
+      "loss": 0.00246429699473083,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 21950,
+      "loss": 0.002166975289583206,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22000,
+      "loss": 0.0015227360418066382,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22050,
+      "loss": 0.0022895936854183674,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22100,
+      "loss": 0.0033321580849587917,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22150,
+      "loss": 0.0021916490513831377,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22200,
+      "loss": 0.0014846157282590866,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22250,
+      "loss": 0.002998278010636568,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22300,
+      "loss": 0.004510580096393824,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22350,
+      "loss": 0.0017639922443777323,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22400,
+      "loss": 0.0014452353352680802,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22450,
+      "loss": 0.0029069262091070414,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22500,
+      "loss": 0.001724682399071753,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22550,
+      "loss": 0.0031507438980042934,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22600,
+      "loss": 0.002964877290651202,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22650,
+      "loss": 0.002300178399309516,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22700,
+      "loss": 0.0012105591595172882,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22750,
+      "loss": 0.0016365135088562965,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22800,
+      "loss": 0.001744143315590918,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22850,
+      "loss": 0.001740471227094531,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22900,
+      "loss": 0.0017005810514092445,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 22950,
+      "loss": 0.0013946123654022813,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23000,
+      "loss": 0.002421677578240633,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23050,
+      "loss": 0.002166994381695986,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23100,
+      "loss": 0.0022310283966362476,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23150,
+      "loss": 0.0016970643773674965,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23200,
+      "loss": 0.0013799130683764815,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23250,
+      "loss": 0.002631864044815302,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23300,
+      "loss": 0.0018683274975046515,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23350,
+      "loss": 0.001336741028353572,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23400,
+      "loss": 0.0017457399517297745,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23450,
+      "loss": 0.0009289224399253726,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23500,
+      "loss": 0.0022925776429474354,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23550,
+      "loss": 0.0028115008026361465,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23600,
+      "loss": 0.0010429613757878542,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23650,
+      "loss": 0.0018953051185235381,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23700,
+      "loss": 0.0032252047676593065,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23750,
+      "loss": 0.0016987079288810492,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23800,
+      "loss": 0.002415610942989588,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23850,
+      "loss": 0.0014762802748009562,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23900,
+      "loss": 0.002240085508674383,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 23950,
+      "loss": 0.0010138163343071938,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24000,
+      "loss": 0.0015303099062293768,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24050,
+      "loss": 0.0017746416851878166,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24100,
+      "loss": 0.001960115972906351,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24150,
+      "loss": 0.0019469484686851501,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24200,
+      "loss": 0.00189935730304569,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24250,
+      "loss": 0.0031643733382225037,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24300,
+      "loss": 0.0016472060233354568,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24350,
+      "loss": 0.0005783494561910629,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24400,
+      "loss": 0.0013916073366999626,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24450,
+      "loss": 0.002249635523185134,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24500,
+      "loss": 0.0020430400036275387,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24550,
+      "loss": 0.0009832571959123015,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24600,
+      "loss": 0.00189899280667305,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24650,
+      "loss": 0.002106742700561881,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24700,
+      "loss": 0.002075423253700137,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24750,
+      "loss": 0.0023631667718291283,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24800,
+      "loss": 0.0009723563562147319,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24850,
+      "loss": 0.0007542668608948588,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24900,
+      "loss": 0.0007272190996445715,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 24950,
+      "loss": 0.0010010579135268927,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25000,
+      "loss": 0.0018186013912782073,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25050,
+      "loss": 0.000768094789236784,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25100,
+      "loss": 0.0026113304775208235,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25150,
+      "loss": 0.0014791327994316816,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25200,
+      "loss": 0.0008393243188038468,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25250,
+      "loss": 0.001683538081124425,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25300,
+      "loss": 0.001189128146506846,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25350,
+      "loss": 0.0009131723782047629,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25400,
+      "loss": 0.0010394093114882708,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25450,
+      "loss": 0.002705448307096958,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25500,
+      "loss": 0.0012132368283346295,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25550,
+      "loss": 0.0029072689358145,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25600,
+      "loss": 0.0017277442384511232,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25650,
+      "loss": 0.004731431137770414,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25700,
+      "loss": 0.0013022037455812097,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25750,
+      "loss": 0.003013200592249632,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25800,
+      "loss": 0.0026097982190549374,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25850,
+      "loss": 0.0013492746511474252,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25900,
+      "loss": 0.0013702192809432745,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 25950,
+      "loss": 0.0019333865493535995,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26000,
+      "loss": 0.002136735711246729,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26050,
+      "loss": 0.0013176050269976258,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26100,
+      "loss": 0.0016905006486922503,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26150,
+      "loss": 0.0013673636130988598,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26200,
+      "loss": 0.002391415648162365,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26250,
+      "loss": 0.0013731186045333743,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26300,
+      "loss": 0.00115061248652637,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26350,
+      "loss": 0.001262114499695599,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26400,
+      "loss": 0.0010943396482616663,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26450,
+      "loss": 0.0006628957926295698,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26500,
+      "loss": 0.0012453701347112656,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26550,
+      "loss": 0.001375857857055962,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26600,
+      "loss": 0.002323087304830551,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26650,
+      "loss": 0.00457700015977025,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26700,
+      "loss": 0.0008307714015245438,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26750,
+      "loss": 0.0008308421820402145,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26800,
+      "loss": 0.0013151268940418959,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26850,
+      "loss": 0.003925580997020006,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26900,
+      "loss": 0.0016022140625864267,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 26950,
+      "loss": 0.0016444723587483168,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27000,
+      "loss": 0.0028365172911435366,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27050,
+      "loss": 0.0024936276022344828,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27100,
+      "loss": 0.0012769141467288136,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27150,
+      "loss": 0.0017460130620747805,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27200,
+      "loss": 0.0007918281480669975,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27250,
+      "loss": 0.0021034330129623413,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27300,
+      "loss": 0.002561164554208517,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27350,
+      "loss": 0.002503726165741682,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27400,
+      "loss": 0.0023372836876660585,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27450,
+      "loss": 0.0015194363659247756,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27500,
+      "loss": 0.001497737248428166,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27550,
+      "loss": 0.0016654904466122389,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27600,
+      "loss": 0.0013974036555737257,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27650,
+      "loss": 0.001235255622304976,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27700,
+      "loss": 0.0007671202765777707,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27750,
+      "loss": 0.0028724749572575092,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27800,
+      "loss": 0.0012100957101210952,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27850,
+      "loss": 0.0018699506763368845,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27900,
+      "loss": 0.0010856492444872856,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 27950,
+      "loss": 0.0012484064791351557,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28000,
+      "loss": 0.0016683324938639998,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28050,
+      "loss": 0.0005773253506049514,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28100,
+      "loss": 0.0009299712255597115,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28150,
+      "loss": 0.0005964356241747737,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28200,
+      "loss": 0.0019660794641822577,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28250,
+      "loss": 0.0025128130801022053,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28300,
+      "loss": 0.002778352238237858,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28350,
+      "loss": 0.002339321654289961,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28400,
+      "loss": 0.001148963114246726,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28450,
+      "loss": 0.005218425299972296,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28500,
+      "loss": 0.0016015572473406792,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28550,
+      "loss": 0.0020677486900240183,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28600,
+      "loss": 0.00228928797878325,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28650,
+      "loss": 0.0012648850679397583,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28700,
+      "loss": 0.0005594994872808456,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28750,
+      "loss": 0.0015838753897696733,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28800,
+      "loss": 0.0013279402628540993,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28850,
+      "loss": 0.0014310001861304045,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28900,
+      "loss": 0.0011854182230308652,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 28950,
+      "loss": 0.0010915782768279314,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29000,
+      "loss": 0.003319577546790242,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29050,
+      "loss": 0.0035429641138762236,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29100,
+      "loss": 0.0008844864787533879,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29150,
+      "loss": 0.002585033420473337,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29200,
+      "loss": 0.0010725207393988967,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29250,
+      "loss": 0.0011675835121423006,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29300,
+      "loss": 0.0013412439730018377,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29350,
+      "loss": 0.0039148274809122086,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29400,
+      "loss": 0.0016927316319197416,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29450,
+      "loss": 0.0025552348233759403,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29500,
+      "loss": 0.0016956956824287772,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29550,
+      "loss": 0.003048334736377001,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29600,
+      "loss": 0.0008485166472382843,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29650,
+      "loss": 0.0010296246036887169,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29700,
+      "loss": 0.0022595426999032497,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29750,
+      "loss": 0.0013338689459487796,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29800,
+      "loss": 0.0006908268551342189,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29850,
+      "loss": 0.0009849857306107879,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29900,
+      "loss": 0.0030881953425705433,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 29950,
+      "loss": 0.002217260655015707,
+      "learning_rate": 0.0001
+    },
+    {
+      "seed": 33,
+      "update": 30000,
+      "loss": 0.0009982020128518343,
+      "learning_rate": 0.0001
+    }
+  ],
+  "full_train_history": [
+    {
+      "seed": 33,
+      "update": 0,
+      "full_train_loss": 0.0358853220911936
+    },
+    {
+      "seed": 33,
+      "update": 1000,
+      "full_train_loss": 0.007708629966053551
+    },
+    {
+      "seed": 33,
+      "update": 2000,
+      "full_train_loss": 0.006341080722147394
+    },
+    {
+      "seed": 33,
+      "update": 3000,
+      "full_train_loss": 0.005828161077314144
+    },
+    {
+      "seed": 33,
+      "update": 4000,
+      "full_train_loss": 0.00517197354192692
+    },
+    {
+      "seed": 33,
+      "update": 5000,
+      "full_train_loss": 0.004854608486920234
+    },
+    {
+      "seed": 33,
+      "update": 6000,
+      "full_train_loss": 0.004033227147074359
+    },
+    {
+      "seed": 33,
+      "update": 7000,
+      "full_train_loss": 0.0035708292464789685
+    },
+    {
+      "seed": 33,
+      "update": 8000,
+      "full_train_loss": 0.0033094906657418315
+    },
+    {
+      "seed": 33,
+      "update": 9000,
+      "full_train_loss": 0.003153697379629675
+    },
+    {
+      "seed": 33,
+      "update": 10000,
+      "full_train_loss": 0.0029255925049222376
+    },
+    {
+      "seed": 33,
+      "update": 11000,
+      "full_train_loss": 0.002877991122620887
+    },
+    {
+      "seed": 33,
+      "update": 12000,
+      "full_train_loss": 0.002746156194693603
+    },
+    {
+      "seed": 33,
+      "update": 13000,
+      "full_train_loss": 0.0026678149324978135
+    },
+    {
+      "seed": 33,
+      "update": 14000,
+      "full_train_loss": 0.002604005872291042
+    },
+    {
+      "seed": 33,
+      "update": 15000,
+      "full_train_loss": 0.002510452805030186
+    },
+    {
+      "seed": 33,
+      "update": 16000,
+      "full_train_loss": 0.0024565779869637097
+    },
+    {
+      "seed": 33,
+      "update": 17000,
+      "full_train_loss": 0.0023851986220634414
+    },
+    {
+      "seed": 33,
+      "update": 18000,
+      "full_train_loss": 0.0023183397991864987
+    },
+    {
+      "seed": 33,
+      "update": 19000,
+      "full_train_loss": 0.002255328013111898
+    },
+    {
+      "seed": 33,
+      "update": 20000,
+      "full_train_loss": 0.0021957797389735878
+    },
+    {
+      "seed": 33,
+      "update": 21000,
+      "full_train_loss": 0.00216734405150974
+    },
+    {
+      "seed": 33,
+      "update": 22000,
+      "full_train_loss": 0.0021197315842812624
+    },
+    {
+      "seed": 33,
+      "update": 23000,
+      "full_train_loss": 0.0020694047879382
+    },
+    {
+      "seed": 33,
+      "update": 24000,
+      "full_train_loss": 0.0020192268635684865
+    },
+    {
+      "seed": 33,
+      "update": 25000,
+      "full_train_loss": 0.0019666416358994823
+    },
+    {
+      "seed": 33,
+      "update": 26000,
+      "full_train_loss": 0.0019205112136803748
+    },
+    {
+      "seed": 33,
+      "update": 27000,
+      "full_train_loss": 0.001903206783822679
+    },
+    {
+      "seed": 33,
+      "update": 28000,
+      "full_train_loss": 0.0018575651001561222
+    },
+    {
+      "seed": 33,
+      "update": 29000,
+      "full_train_loss": 0.0018199876231049118
+    },
+    {
+      "seed": 33,
+      "update": 30000,
+      "full_train_loss": 0.0017933802285972115
+    }
+  ],
+  "plateau_monitor": {
+    "enabled": true,
+    "policy": {
+      "minimum_updates": 50000,
+      "check_every": 5000,
+      "window_updates": 20000,
+      "observe_every": 1000,
+      "relative_thresholds": [
+        0.01,
+        0.01,
+        0.03
+      ],
+      "sustain_updates": 10000
+    },
+    "checks": [],
+    "passing_since": null,
+    "plateau": false,
+    "origin_update": 10000,
+    "origin_seconds": 12.44451955799741,
+    "timing": {
+      "rng_seconds": 0.029933383011666592,
+      "optimizer_seconds": 21.100894385002903,
+      "full_train_seconds": 0.38059218000853434,
+      "trace_seconds": 0.0,
+      "checkpoint_seconds": 0.0
+    },
+    "long_run_sha256": "6323bfc10497e7ec1650ed4c7c0e941db86cd245dd00b96680e53b9ae4a431d1",
+    "origin_checkpoint": "results/gamma_sweep/run_001/gamma_1/checkpoints/tp/seed33/update_010000_1793807026336213869",
+    "origin_kind": "gamma_sweep_checkpoint"
+  },
+  "elapsed_seconds": 34.03108387300017,
+  "reason": "observed_checkpoint"
+}
