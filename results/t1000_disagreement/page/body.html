@@ -1,0 +1,256 @@
+.dl-wide{grid-template-columns:minmax(10rem,15rem) 1fr}
+.ideas{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none;counter-reset:i}
+.ideas li{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:14px 18px 14px 52px;position:relative;counter-increment:i}
+.ideas li::before{content:counter(i);position:absolute;left:16px;top:13px;font-family:var(--mono);font-weight:500;font-size:1rem;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:.8rem}
+.ideas h3{margin-bottom:4px}
+.ideas p{font-size:.92rem;color:var(--ink-2)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.82rem;color:var(--ink-2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+.legend i.dash{border-top-style:dashed}
+.legend i.dot{width:10px;height:10px;border-radius:50%;border:0}
+.cases button.slow{border-color:var(--bad);color:var(--bad)}
+.cases button.slow[aria-pressed="true"]{background:var(--bad);color:var(--bg);border-color:var(--bad)}
+td.flag{font-family:var(--body);font-weight:600;font-size:.78rem}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">H₂/air 0-D ignition · strategy 5 (UR10 physics-in-loop + physics) · five-seed committee</div>
+  <h1>Committee Disagreement</h1>
+  <p class="lede">At every saved state of each seed's 20-ms rollout, all five best-validation models predict the next step from that same state. Their relative disagreement is compared with the actual error of that rollout, across the 18 test and 18 validation cases.</p>
+  <div class="facts">
+    <div><b>36</b><span>cases (18 test + 18 val)</span></div>
+    <div><b>180</b><span>rollouts (5 seeds each)</span></div>
+    <div><b>1 400</b><span>query states per rollout</span></div>
+    <div><b>5</b><span>members per query</span></div>
+    <div><b>best-val</b><span>weights for every member</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><h2>Findings</h2></div>
+  <div class="findings" id="findings"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Does disagreement predict the error?</h2>
+    <p>Each dot is one rollout. The x-axis is the largest relative disagreement seen before that rollout's own temperature has risen 50 K, so a running simulation can compute it without knowing τ. The y-axis is that rollout's full 20-ms temperature RMSE.</p></div>
+  <div class="legend" id="sc-legend"></div>
+  <div class="chartbox" id="scatter"></div>
+  <p class="note" id="sc-note"></p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Why the slow cases fail</h2>
+    <p>Both quantities are medians over the induction period (t &lt; τ_ref), measured along the reference trajectory and expressed in units of the training increment's standard deviation. The <em>noise</em> is the spread of the five members' predicted step. The <em>signal</em> is the length of their mean step.</p></div>
+  <div class="legend" id="mx-legend"></div>
+  <div class="chartbox" id="mech"></div>
+  <p class="note">The noise stays near 0.005 whatever the case, but the true per-step change shrinks by almost three orders of magnitude as τ grows. Above τ ≈ 0.3 ms the signal falls to the size of the noise, which is exactly where the errors appear.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Over time, case by case</h2>
+    <p>Choose a case; the five slow cases are outlined in red. All three panels share a log time axis, and the grey vertical line marks the reference τ₄₀₀.</p></div>
+  <div class="cases" id="cases"></div>
+  <div class="case-info" id="case-info"></div>
+  <div class="legend" id="ts-legend"></div>
+  <div class="chartbox" id="ts"></div>
+  <p class="note">Middle panel: each seed's line is solid until that rollout has risen 50 K and faint afterwards. After ignition the state approaches equilibrium and both the mean step and the spread go to zero, so the ratio is set by the floor ε and means nothing there. The dashed line is the same measure taken on the Cantera reference states, which needs no rollout at all.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Per-case summary</h2>
+    <p>Cases are sorted by reference ignition delay. Max R pre-ign. is the median over the 5 seeds. Error columns are for strategy 5 at 20 ms: median τ₄₀₀ error over the seeds that ignite, mean temperature RMSE, and how many seeds classify ignition correctly.</p></div>
+  <div class="frame"><table id="tbl"><thead><tr>
+    <th>Case</th><th>Split</th><th>T₀ (K)</th><th>P (atm)</th><th>τ_ref (ms)</th><th>Max R pre-ign.</th><th>R on ref. (ind.)</th><th>Signal / noise</th><th>τ₄₀₀ err.</th><th>T RMSE</th><th>Correct</th><th>Flag (R &gt; 0.3)</th>
+  </tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Ideas this suggests</h2>
+    <p>These are ranked by how directly the evidence above supports them. None of them has been tested yet.</p></div>
+  <ol class="ideas">
+    <li><h3>Disagreement-gated hybrid solver</h3><p>While the rollout is still before ignition, hand each step to the stiff ODE solver whenever R exceeds about 0.3, and return to the network once the temperature has risen or R drops. On these 36 cases the gate fires only in the five slow cases, and it fires within the first 12–64 µs, well before any error appears. Accuracy there would match the reference, and the extra cost is limited to those induction periods.</p></li>
+    <li><h3>A coarser time step for slow induction</h3><p>The failure is a signal-to-noise problem. The true change per 2 µs step is about the size of the network's noise floor. A second model trained at a larger Δt (for example 20–50 µs), used only while R is high, takes steps that are ten or more times larger against a noise floor that should not grow as fast. This is a hypothesis: whether the noise floor really stays put at a larger Δt has to be measured.</p></li>
+    <li><h3>Fix the training objective, then add data</h3><p>An MAE loss in standardized increment space gives slow-induction states almost no weight, because their increments are about 1000× smaller than typical. Two options are a loss weighted by relative increment, or log-scaled radical increments. The states with high R are also where new training pairs would help most (query-by-committee active learning): the T₀ = 1000–1060 K induction region.</p></li>
+    <li><h3>Committee mean in the flagged regime (weakest)</h3><p>Averaging five members reduces the noise by at most about √5 ≈ 2.2×. At a signal-to-noise ratio near 1 that is probably not enough. Cases 7 and 9 also show that all members can freeze in the same way.</p></li>
+  </ol>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Definitions</h2></div>
+  <dl class="dl-wide">
+    <dt>Query</dt><dd>For a state x, each member k predicts the next state. It is then Wang-projected and its temperature recovered from enthalpy, exactly as in the strategy-5 rollouts. Pressure is excluded from the comparison.</dd>
+    <dt>Step vector D<sub>k</sub></dt><dd>[encode(next<sub>k</sub>) − encode(x)] / σ<sub>train</sub>, taken over T and the 9 BCT(Y) channels. σ<sub>train</sub> is the standard deviation of the training-set increment, so all channels share one unit.</dd>
+    <dt>Relative disagreement R</dt><dd>‖std<sub>k</sub> D<sub>k</sub>‖ / (‖mean<sub>k</sub> D<sub>k</sub>‖ + ε), with ε = 10⁻³. The noise is the numerator and the signal is the length of the mean step.</dd>
+    <dt>Max R pre-ignition</dt><dd>The maximum of a 10-point (20 µs) rolling median of R along a rollout, taken while that rollout's own T is below T₀ + 50 K. It is computed online and needs no reference.</dd>
+    <dt>Trajectory spread</dt><dd>The standard deviation of T(t) across the five independent seed rollouts, set against their mean |T − T<sub>ref</sub>|.</dd>
+    <dt>Bad rollout</dt><dd>Ignition misclassified (400 K-rise criterion), or refined τ₄₀₀ error above 10%.</dd>
+    <dt>Sampling</dt><dd>0–2 ms every 2 steps and 2–20 ms every 10 steps, giving 1 400 states per rollout. Charts use about 300 log-spaced points.</dd>
+  </dl>
+</section>
+
+<footer>
+  <div>Code: <code>kinetics/t1000_disagreement.py</code>, <code>kinetics/t1000_disagreement_report.py</code>. Data: <code>results/t1000_disagreement/</code> (disagreement.npz, runs.csv, cases_summary.csv).</div>
+  <div>Models: <code>results/t1000_ur10_phys_best/g0.1/seed{11,22,33,44,55}</code> (best-validation). Rollouts: <code>evaluation_wang_members/seed*/traces</code>. Reference: <code>results/t1000_reference/reference20ms.npz</code>.</div>
+</footer>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+const D=JSON.parse(document.getElementById('data').textContent);
+const S=D.stats,TH=S.threshold,SLOW=[7,9,52,69,78],SEEDS=[11,22,33,44,55];
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a={},h='')=>{const e=document.createElement(t);for(const k in a)e.setAttribute(k,a[k]);if(h)e.innerHTML=h;return e};
+const sv=(t,a={})=>{const e=document.createElementNS(NS,t);let st='';for(const k in a){const v=String(a[k]);if((k==='fill'||k==='stroke')&&v.startsWith('var('))st+=`${k}:${v};`;else e.setAttribute(k,v)}if(st)e.setAttribute('style',st+(e.getAttribute('style')||''));return e};
+const txt=(s,a,t)=>{const e=sv('text',a);e.textContent=t;s.append(e);return e};
+const pct=x=>x==null||isNaN(x)?'–':(x*100).toFixed(1)+'%';
+const K=x=>x==null||isNaN(x)?'–':(x>=100?x.toFixed(0):x>=10?x.toFixed(1):x.toFixed(2))+' K';
+const g3=x=>x==null||isNaN(x)?'–':(x<0.001?x.toExponential(1):x<1?x.toPrecision(2):x.toFixed(2));
+const lg=(a,b,p0,p1)=>v=>p0+(Math.log10(v)-Math.log10(a))/(Math.log10(b)-Math.log10(a))*(p1-p0);
+const sup=n=>String(n).replace(/-/g,'⁻').replace(/\d/g,d=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+const pw=v=>{const e=Math.round(Math.log10(v));return v===1?'1':v===10?'10':`10${sup(e)}`};
+const runs=D.runs,cases=D.cases,byId=Object.fromEntries(cases.map(c=>[c.id,c]));
+const med=a=>{const b=a.filter(v=>v!=null&&!isNaN(v)).sort((x,y)=>x-y);if(!b.length)return null;const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2};
+const mean=a=>{const b=a.filter(v=>v!=null);return b.length?b.reduce((x,y)=>x+y,0)/b.length:null};
+function attachTip(box,target,html,anchor){const tip=box.querySelector('.tip');const show=()=>{tip.hidden=false;tip.innerHTML=html();
+  const bb=box.getBoundingClientRect(),cb=(anchor||target).getBoundingClientRect();let lx=cb.left-bb.left+16,ly=cb.top-bb.top-10;if(lx+230>bb.width)lx=cb.left-bb.left-240;tip.style.left=Math.max(4,lx)+'px';tip.style.top=Math.max(4,ly)+'px'};
+  target.addEventListener('mouseenter',show);target.addEventListener('focus',show);target.addEventListener('mouseleave',()=>tip.hidden=true);target.addEventListener('blur',()=>tip.hidden=true)}
+
+/* findings */
+const r69=runs.filter(r=>[69,78].includes(r.id));
+const tf=r69.map(r=>r.t_flag*1e6),te=r69.map(r=>r.t_err50*1e3);
+const slowRuns=runs.filter(r=>SLOW.includes(r.id));
+const F=[
+ {k:`${S.slow_min.toFixed(2)}–${Math.max(...SLOW.map(i=>med(runs.filter(r=>r.id===i).map(r=>r.maxR)))).toFixed(2)}`,h:'Disagreement separates the slow cases cleanly',p:`Before ignition, the median of max R per case is ${S.slow_min.toFixed(2)} or more in all five slow cases (7, 9, 52, 69, 78; τ_ref ≥ 0.36 ms). In the other 31 cases it is ${S.other_max.toFixed(2)} or less. Nothing falls in the gap between the two groups.`},
+ {k:`${S.all_tp}/${S.all_bad}`,h:'Every bad rollout is flagged',p:`With the gate R > ${TH}, all ${S.all_bad} bad rollouts are flagged (test: ${S.test_tp}/${S.test_bad}). The ${S.all_flag-S.all_tp} false alarms are seeds in those same slow cases that happened to land within 10%. On validation, the regular cases stay at or below 0.08 and every slow-case run is at or above 0.71, so 0.3 can be fixed without looking at the test set.`},
+ {k:`${Math.min(...tf).toFixed(0)}–${Math.max(...tf).toFixed(0)} µs`,h:'The warning comes long before the error',p:`In cases 69 and 78, R crosses ${TH} between ${Math.min(...tf).toFixed(0)} and ${Math.max(...tf).toFixed(0)} µs into every seed's rollout. The temperature error first exceeds 50 K only at ${Math.min(...te).toFixed(2)}–${Math.max(...te).toFixed(2)} ms, at the mispredicted ignition. That leaves about 0.3–0.5 ms to act.`},
+ {k:'0 K',h:'Seed-to-seed trajectory spread misses cases 7 and 9',p:'In cases 7 and 9 all five seeds freeze in the same way: the radicals stop growing within 0.2–0.4 ms, so the spread between rollouts is 0 K while the error reaches 1 600–1 700 K. The one-step disagreement still flags both cases, because at the frozen state the members disagree about steps that are almost zero.'},
+ {k:'≈ 1',h:'Cause: per-step change is at the noise floor',p:'Along the reference, the members’ spread is about 0.005 training-σ per step in every case. In the slow cases the true step is only 0.006–0.009, a signal-to-noise ratio of 0.9–1.8. In every other case the true step is 0.05–4.5, at least 9× the noise.'},
+ {k:`ρ ≈ ${S.rho_within.toFixed(2)}`,h:'It flags the regime, not which seed will be worse',p:`Across all 180 rollouts, max R ranks the temperature error with Spearman ρ = ${S.rho_maxR_Trmse.toFixed(2)}. Within cases 52, 69 and 78, however, it does not tell which seed will do worse (mean ρ = ${S.rho_within.toFixed(2)}). Use it as a trust gate, not as an error bar.`}
+];
+const fd=document.getElementById('findings');F.forEach(f=>fd.append(el('div',{class:'finding'},`<div class="k">${f.k}</div><h3>${f.h}</h3><p>${f.p}</p>`)));
+
+/* scatter */
+(function(){
+  const box=document.getElementById('scatter');box.append(el('div',{class:'tip',hidden:''}));
+  const W=820,H=420,L=64,R=20,T=14,B=48,xlo=1e-3,xhi=2,ylo=0.05,yhi=3000;
+  const x=lg(xlo,xhi,L,W-R),y=v=>H-B-(lg(ylo,yhi,0,H-B-T)(v));
+  const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Temperature RMSE versus pre-ignition relative disagreement, one dot per rollout'});
+  [1e-3,1e-2,1e-1,1].forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:H-B,class:'grid'}));txt(s,{x:x(v),y:H-B+16,'text-anchor':'middle'},pw(v))});
+  [0.1,1,10,100,1000].forEach(v=>{s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},v>=1?v:'0.1')});
+  s.append(sv('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,class:'base'}));
+  s.append(sv('line',{x1:x(TH),x2:x(TH),y1:T,y2:H-B,stroke:'var(--ink-2)','stroke-width':1.5,'stroke-dasharray':'5 4'}));
+  txt(s,{x:x(TH)+6,y:T+12,style:'font-family:var(--body);fill:var(--ink-2)'},`gate R = ${TH}`);
+  txt(s,{x:(L+W-R)/2,y:H-8,'text-anchor':'middle',class:'axis-title'},'Max relative disagreement R before ignition (log)');
+  txt(s,{x:-(T+H-B)/2,y:16,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'Rollout temperature RMSE, 20 ms (K, log)');
+  const sorted=[...runs].sort((a,b)=>a.bad-b.bad);
+  sorted.forEach(r=>{const xv=Math.max(xlo*1.05,r.maxR),cx=x(xv),cy=y(Math.max(ylo,Math.min(yhi,r.T_rmse)));
+    const c=r.bad?sv('rect',{x:cx-5,y:cy-5,width:10,height:10,rx:2,fill:'var(--s2)',stroke:'var(--panel)','stroke-width':2}):sv('circle',{cx,cy,r:5,fill:'var(--s1)',stroke:'var(--panel)','stroke-width':2,'fill-opacity':.85});
+    const hit=sv('circle',{cx,cy,r:10,fill:'transparent',tabindex:0});s.append(c,hit);
+    attachTip(box,hit,()=>`<div class="t">Case ${r.id} · seed ${r.seed} · ${r.split}</div><div class="row"><span>Max R pre-ign.</span><span>${r.maxR<1e-3?'&lt; 0.001':g3(r.maxR)}</span></div><div class="row"><span>T RMSE</span><span>${K(r.T_rmse)}</span></div><div class="row"><span>τ₄₀₀ error</span><span>${r.correct?pct(r.tau_err):'missed'}</span></div><div class="row"><span>τ_ref</span><span>${(byId[r.id].tau_ref*1e3).toPrecision(2)} ms</span></div>`,c)});
+  SLOW.forEach(i=>{const rs=runs.filter(r=>r.id===i);const mx=med(rs.map(r=>r.maxR)),my=Math.max(...rs.map(r=>r.T_rmse));
+    const up=i===52||i===69;txt(s,{x:x(mx),y:y(Math.min(yhi,my))+(up?-12:-12),'text-anchor':'middle',style:'font-family:var(--body);font-weight:600;fill:var(--ink)'},`#${i}`)});
+  box.prepend(s);
+  document.getElementById('sc-legend').innerHTML=`<span><i class="dot" style="background:var(--s1)"></i>τ₄₀₀ error ≤ 10%</span><span><i class="dot" style="background:var(--s2);border-radius:2px"></i>τ₄₀₀ error &gt; 10% or ignition missed</span><span><i class="dash" style="border-color:var(--ink-2)"></i>gate R = ${TH}</span>`;
+  document.getElementById('sc-note').textContent=`Rollouts that rise 50 K before the first query (τ_ref below about 4 µs) have no pre-ignition window; they are drawn at the left edge as R < 0.001. Spearman ρ between max R and T RMSE over all 180 rollouts is ${S.rho_maxR_Trmse.toFixed(2)}.`;
+})();
+
+/* mechanism */
+(function(){
+  const box=document.getElementById('mech');box.append(el('div',{class:'tip',hidden:''}));
+  const W=820,H=340,L=64,R=20,T=14,B=48,xlo=1e-3,xhi=10,ylo=1e-3,yhi=10;
+  const x=lg(xlo,xhi,L,W-R),y=v=>H-B-(lg(ylo,yhi,0,H-B-T)(v));
+  const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Signal and noise of the one-step prediction versus reference ignition delay'});
+  [1e-3,1e-2,1e-1,1,10].forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:H-B,class:'grid'}));txt(s,{x:x(v),y:H-B+16,'text-anchor':'middle'},`${v>=1?v:v} ms`.replace('0.001','0.001'))});
+  [1e-3,1e-2,1e-1,1,10].forEach(v=>{s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},pw(v))});
+  s.append(sv('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,class:'base'}));
+  s.append(sv('rect',{x:x(0.3),y:T,width:W-R-x(0.3),height:H-B-T,fill:'var(--bad-bg)','fill-opacity':.55}));
+  txt(s,{x:x(0.3)+6,y:T+14,style:'font-family:var(--body);fill:var(--bad)'},'τ > 0.3 ms: signal ≈ noise');
+  txt(s,{x:(L+W-R)/2,y:H-8,'text-anchor':'middle',class:'axis-title'},'Reference ignition delay τ₄₀₀ (log)');
+  txt(s,{x:-(T+H-B)/2,y:16,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'Per-step size (training-σ units, log)');
+  const cs=[...cases].sort((a,b)=>a.tau_ref-b.tau_ref);
+  [['signal','var(--s1)'],['noise','var(--s2)']].forEach(([k,col])=>{
+    s.append(sv('path',{d:cs.map((c,j)=>`${j?'L':'M'}${x(c.tau_ref*1e3).toFixed(1)},${y(Math.max(ylo,c[k])).toFixed(1)}`).join(''),fill:'none',stroke:col,'stroke-width':2,'stroke-opacity':.45}));
+    cs.forEach(c=>{const cx=x(c.tau_ref*1e3),cy=y(Math.max(ylo,c[k]));const m=sv('circle',{cx,cy,r:4.5,fill:col,stroke:'var(--panel)','stroke-width':2});const hit=sv('circle',{cx,cy,r:9,fill:'transparent',tabindex:0});s.append(m,hit);
+      attachTip(box,hit,()=>`<div class="t">Case ${c.id} · ${c.split}</div><div class="row"><span>τ_ref</span><span>${(c.tau_ref*1e3).toPrecision(3)} ms</span></div><div class="row"><span>T₀</span><span>${c.T0.toFixed(0)} K</span></div><div class="row"><span>Signal ‖mean D‖</span><span>${g3(c.signal)}</span></div><div class="row"><span>Noise ‖std D‖</span><span>${g3(c.noise)}</span></div><div class="row"><span>Signal / noise</span><span>${(c.signal/c.noise).toPrecision(2)}</span></div>`,m)})});
+  const last=cs[cs.length-1];
+  txt(s,{x:x(cs[0].tau_ref*1e3)+8,y:y(cs[0].signal)-8,style:'font-family:var(--body);font-weight:600;fill:var(--ink-2)'},'signal');
+  txt(s,{x:x(cs[0].tau_ref*1e3)+8,y:y(cs[0].noise)+18,style:'font-family:var(--body);font-weight:600;fill:var(--ink-2)'},'noise');
+  box.prepend(s);
+  document.getElementById('mx-legend').innerHTML=`<span><i class="dot" style="background:var(--s1)"></i>Signal: ‖mean step‖</span><span><i class="dot" style="background:var(--s2)"></i>Noise: ‖std of steps across members‖</span>`;
+})();
+
+/* time series explorer */
+(function(){
+  const box=document.getElementById('ts');box.append(el('div',{class:'tip',hidden:''}));
+  const t=D.time,n=t.length,W=860,L=70,R=20,PH=170,G=34,T=12,B=44,H=T+3*PH+2*G+B;
+  const x=lg(2e-6,2e-2,L,W-R);
+  const chips=document.getElementById('cases');let cur=69;
+  [...cases].sort((a,b)=>a.tau_ref-b.tau_ref).forEach(c=>{const b=el('button',{'aria-pressed':c.id===cur,class:SLOW.includes(c.id)?'slow':''},`#${c.id}`);b.title=`${c.split}, τ_ref ${(c.tau_ref*1e3).toPrecision(2)} ms`;b.onclick=()=>{cur=c.id;chips.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',q===b));draw()};chips.append(b)});
+  document.getElementById('ts-legend').innerHTML=SEEDS.map((s,k)=>`<span><i style="border-color:var(--s${k+1})"></i>seed ${s}</span>`).join('')+`<span><i class="dash" style="border-color:var(--ref)"></i>reference / on reference states</span><span><i style="border-color:var(--s2);opacity:.6"></i>(bottom) trajectory spread</span>`;
+  function panel(s,top,lo,hi,label,ticks){const y=v=>top+PH-lg(lo,hi,0,PH)(Math.max(lo,Math.min(hi,v)));
+    ticks.forEach(v=>{s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},typeof v==='number'&&v<1?pw(v):String(v))});
+    s.append(sv('line',{x1:L,x2:W-R,y1:top+PH,y2:top+PH,class:'base'}));
+    txt(s,{x:-(top+PH/2),y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},label);return y}
+  function linY(lo,hi,top){return v=>top+PH-(Math.max(lo,Math.min(hi,v))-lo)/(hi-lo)*PH}
+  function path(vals,X,Y,from=0,to=n){let d='',pen=false;for(let j=from;j<to;j++){const v=vals[j];if(v==null){pen=false;continue}d+=`${pen?'L':'M'}${X(t[j]).toFixed(1)},${Y(v).toFixed(1)}`;pen=true}return d}
+  function draw(){
+    const S_=D.series[String(cur)],c=byId[cur];box.querySelector('svg')?.remove();
+    const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`Temperature, relative disagreement and trajectory spread over time for case ${cur}`});
+    const top1=T,top2=T+PH+G,top3=T+2*(PH+G);
+    [2e-6,1e-5,1e-4,1e-3,1e-2].forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:top3+PH,class:'grid'}));txt(s,{x:x(v),y:top3+PH+16,'text-anchor':'middle'},v<1e-3?`${v*1e6} µs`:`${v*1e3} ms`)});
+    txt(s,{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'axis-title'},'Time (log)');
+    // panel 1: T (linear)
+    const tmax=Math.max(...S_.Tref.filter(v=>v!=null),...S_.T.flat().filter(v=>v!=null));const tlo=Math.floor((c.T0-60)/100)*100,thi=Math.ceil((tmax+60)/100)*100;
+    const y1=linY(tlo,thi,top1);const step=thi-tlo>1200?500:200;
+    for(let v=Math.ceil(tlo/step)*step;v<=thi;v+=step){s.append(sv('line',{x1:L,x2:W-R,y1:y1(v),y2:y1(v),class:'grid'}));txt(s,{x:L-8,y:y1(v)+4,'text-anchor':'end'},v)}
+    s.append(sv('line',{x1:L,x2:W-R,y1:top1+PH,y2:top1+PH,class:'base'}));txt(s,{x:-(top1+PH/2),y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'T (K)');
+    S_.T.forEach((v,k)=>s.append(sv('path',{d:path(v,x,y1),fill:'none',stroke:`var(--s${k+1})`,'stroke-width':2,'stroke-opacity':.9})));
+    s.append(sv('path',{d:path(S_.Tref,x,y1),fill:'none',stroke:'var(--ref)','stroke-width':2,'stroke-dasharray':'6 4'}));
+    // panel 2: R (log)
+    const y2=panel(s,top2,1e-3,10,'Relative disagreement R',[1e-3,1e-2,1e-1,1,10]);
+    s.append(sv('line',{x1:L,x2:W-R,y1:y2(TH),y2:y2(TH),stroke:'var(--ink-2)','stroke-width':1.2,'stroke-dasharray':'5 4'}));txt(s,{x:W-R-4,y:y2(TH)-5,'text-anchor':'end',style:'font-family:var(--body);fill:var(--ink-2)'},`gate ${TH}`);
+    S_.R.forEach((v,k)=>{const ig=S_.ign[k];const cut=ig==null?n:t.findIndex(q=>q>ig);const c_=cut<0?n:cut;
+      s.append(sv('path',{d:path(v,x,y2,Math.max(0,c_-1),n),fill:'none',stroke:`var(--s${k+1})`,'stroke-width':1.5,'stroke-opacity':.22}));
+      s.append(sv('path',{d:path(v,x,y2,0,c_),fill:'none',stroke:`var(--s${k+1})`,'stroke-width':2}))});
+    s.append(sv('path',{d:path(S_.Rref,x,y2),fill:'none',stroke:'var(--ref)','stroke-width':2,'stroke-dasharray':'6 4'}));
+    // panel 3: spread & error (log K)
+    const y3=panel(s,top3,0.01,3000,'K (log)',[0.01,0.1,1,10,100,1000]);
+    s.append(sv('path',{d:path(S_.err,x,y3),fill:'none',stroke:'var(--ink)','stroke-width':2}));
+    s.append(sv('path',{d:path(S_.spread,x,y3),fill:'none',stroke:'var(--s2)','stroke-width':2,'stroke-dasharray':'2 3'}));
+    txt(s,{x:L+8,y:top3+14,style:'font-family:var(--body);fill:var(--ink-2)'},'solid: mean |T − T_ref| over seeds · dotted: std of T across seeds');
+    // tau_ref marker
+    if(c.tau_ref>=2e-6)[top1,top2,top3].forEach(tp=>s.append(sv('line',{x1:x(c.tau_ref),x2:x(c.tau_ref),y1:tp,y2:tp+PH,stroke:'var(--ink-3)','stroke-width':1.5,'stroke-opacity':.7})));
+    txt(s,{x:x(Math.max(2e-6,c.tau_ref))+4,y:top1+12,style:'font-family:var(--body);fill:var(--ink-3)'},'τ_ref');
+    // crosshair
+    const ch=sv('line',{y1:T,y2:top3+PH,stroke:'var(--ink-2)','stroke-width':1,visibility:'hidden'});s.append(ch);
+    const hit=sv('rect',{x:L,y:T,width:W-R-L,height:top3+PH-T,fill:'transparent'});s.append(hit);
+    const tip=box.querySelector('.tip');
+    const move=ev=>{const pt=s.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(s.getScreenCTM().inverse());
+      const tv=Math.pow(10,Math.log10(2e-6)+(p.x-L)/(W-R-L)*(Math.log10(2e-2)-Math.log10(2e-6)));let j=0,bd=1e9;t.forEach((q,i)=>{const d_=Math.abs(Math.log(q/tv));if(d_<bd){bd=d_;j=i}});
+      ch.setAttribute('x1',x(t[j]));ch.setAttribute('x2',x(t[j]));ch.setAttribute('visibility','visible');
+      const tl=t[j]<1e-3?`${(t[j]*1e6).toFixed(0)} µs`:`${(t[j]*1e3).toFixed(3)} ms`;
+      tip.hidden=false;tip.innerHTML=`<div class="t">Case ${cur} · t = ${tl}</div><div class="row"><span>T_ref</span><span>${K(S_.Tref[j])}</span></div>`+
+        SEEDS.map((sd,k)=>`<div class="row"><span><i class="sw" style="background:var(--s${k+1});width:10px;height:10px"></i>seed ${sd}</span><span>T ${K(S_.T[k][j])} · R ${g3(S_.R[k][j])}</span></div>`).join('')+
+        `<div class="row"><span>R on reference</span><span>${g3(S_.Rref[j])}</span></div><div class="row"><span>Spread / mean |err|</span><span>${K(S_.spread[j])} / ${K(S_.err[j])}</span></div>`;
+      const bb=box.getBoundingClientRect();let lx=ev.clientX-bb.left+16;if(lx+290>bb.width)lx=ev.clientX-bb.left-300;tip.style.left=Math.max(4,lx)+'px';tip.style.top=Math.max(4,ev.clientY-bb.top-40)+'px'};
+    hit.addEventListener('mousemove',move);hit.addEventListener('mouseleave',()=>{tip.hidden=true;ch.setAttribute('visibility','hidden')});
+    box.prepend(s);
+    const rs=runs.filter(r=>r.id===cur);
+    document.getElementById('case-info').innerHTML=`<b>Case ${cur}</b> (${c.split}) · T₀ = ${c.T0.toFixed(0)} K, P = ${c.P_atm.toFixed(2)} atm, τ_ref = ${(c.tau_ref*1e3).toPrecision(3)} ms · max R pre-ign. (median of seeds) ${g3(med(rs.map(r=>r.maxR)))} · τ₄₀₀ error by seed: ${rs.map(r=>r.correct?pct(r.tau_err):'missed').join(', ')}`;
+  }
+  draw();
+})();
+
+/* table */
+(function(){
+  const tb=document.querySelector('#tbl tbody');
+  [...cases].sort((a,b)=>a.tau_ref-b.tau_ref).forEach(c=>{const rs=runs.filter(r=>r.id===c.id);const mR=med(rs.map(r=>r.maxR));const flag=mR>TH;
+    const nb=rs.filter(r=>r.bad).length;const corr=rs.filter(r=>r.correct).length;
+    const tr=el('tr');tr.innerHTML=`<td>#${c.id}</td><td>${c.split}</td><td>${c.T0.toFixed(0)}</td><td>${c.P_atm.toFixed(2)}</td><td>${(c.tau_ref*1e3).toPrecision(2)}</td><td${flag?' class="bad"':''}>${mR<1e-3?'&lt; 0.001':g3(mR)}</td><td>${g3(c.R_pre_ref)}</td><td>${(c.signal/c.noise).toPrecision(2)}</td><td${nb?' class="bad"':''}>${pct(med(rs.map(r=>r.tau_err)))}</td><td>${K(mean(rs.map(r=>r.T_rmse)))}</td><td${corr<5?' class="bad"':''}>${corr}/5</td><td class="flag ${flag?'bad':'muted'}">${flag?'⚑ flagged':'–'}</td>`;tb.append(tr)});
+})();
+})();
+</script>

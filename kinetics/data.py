@@ -16,7 +16,7 @@ def mechanism():
     return ct.Solution(thermo='ideal-gas', kinetics='gas', species=species, reactions=reactions)
 
 
-def generate(path, trajectories=90, steps=200, dt=2e-6, seed=20261029):
+def generate(path, trajectories=90, steps=200, dt=2e-6, seed=20261029, temperature_range=(900,1600)):
     path = Path(path)
     if path.exists():
         raise FileExistsError('Never overwrite a dataset; use a new path')
@@ -30,7 +30,7 @@ def generate(path, trajectories=90, steps=200, dt=2e-6, seed=20261029):
     minimum = 0.
     for i in range(trajectories):
         gas = mechanism()
-        t, p, phi = rng.uniform(900,1600), rng.uniform(1,5)*ct.one_atm, rng.uniform(.5,2.)
+        t, p, phi = rng.uniform(*temperature_range), rng.uniform(1,5)*ct.one_atm, rng.uniform(.5,2.)
         gas.TP = t,p
         gas.set_equivalence_ratio(phi, 'H2', 'O2:1,N2:3.76')
         reactor = ct.IdealGasConstPressureReactor(gas, clone=True)
@@ -50,7 +50,7 @@ def generate(path, trajectories=90, steps=200, dt=2e-6, seed=20261029):
     path.parent.mkdir(parents=True,exist_ok=True)
     np.savez_compressed(path, states=states, pressures=pressures, initials=initials,
                         split=split, species=SPECIES, elements=elements, element_matrix=matrix, dt=dt)
-    metadata = dict(seed=seed, trajectories=trajectories, steps=steps, dt=dt,
+    metadata = dict(seed=seed, trajectories=trajectories, steps=steps, dt=dt, temperature_range=list(temperature_range),
                     cantera=ct.__version__, species=SPECIES, n_reactions=gas.n_reactions,
                     min_solver_mass_fraction=minimum,
                     note='Only negative Cantera roundoff in [-1e-14,0) replaced by zero; no renormalization.',

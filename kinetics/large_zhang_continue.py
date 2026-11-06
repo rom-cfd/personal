@@ -1,12 +1,20 @@
-"""Continue immutable GELU/Adam checkpoints with validation ReduceLROnPlateau.
+"""Continue immutable GELU/Adam checkpoints with ReduceLROnPlateau.
 
-Epoch numbering and update numbering are separate so changing batch size does
+The scheduler monitors validation MAE by default. With scheduler monitor
+'training_loss_epoch_mean' it monitors the mean minibatch training loss of each
+epoch instead; validation MAE is then only logged and the last-epoch model is
+the result; a best-validation copy is still kept in best/. Epoch numbering and update numbering are separate so changing batch size does
 not repeat the first ten epochs or confuse Adam's retained iteration counter.
 """
 import argparse,fcntl,hashlib,json,math,time
 from pathlib import Path
 import numpy as np
 from .multiscale_large_data import atomic_json,sha
+
+# Earlier sources whose checkpoints this version may resume. The only difference is the best-validation copy
+# (best/) for the training-loss monitor; updates, scheduler and checkpoints are unchanged.
+COMPATIBLE_SOURCES={'fe69c6ca9ef70c9a6799d41fd5cdc0b174304a088aa31fbcced76fe2b12b5a61':
+    'added best-validation copy for training-loss monitor (2026-11-03); training math unchanged'}
 from .large_zhang_training import prepare_cache,encode,permutation_for
 from .transforms import Standardizer
 
@@ -83,13 +91,23 @@ def main():
     scheduler.wait=tf.Variable(0,dtype=tf.int64,trainable=False)
     scheduler.cooldown=tf.Variable(0,dtype=tf.int64,trainable=False)
     local_step=tf.Variable(0,dtype=tf.int64,trainable=False)
-    state=tf.train.Checkpoint(model=p.model,optimizer=optimizer,scheduler=scheduler,continuation_updates=local_step)
+    train_monitor=cfg['scheduler']['monitor']=='training_loss_epoch_mean'
+    if not train_monitor:assert cfg['scheduler']['monitor']=='validation_standardized_MAE'
+    loss_sum=tf.Variable(0.,dtype=tf.float64,trainable=False);loss_count=tf.Variable(0,dtype=tf.int64,trainable=False)
+    # Partial-epoch loss sums are checkpointed so a mid-epoch resume gives the same epoch mean.
+    extra=dict(epoch_loss_sum=loss_sum,epoch_loss_count=loss_count) if train_monitor else {}
+    state=tf.train.Checkpoint(model=p.model,optimizer=optimizer,scheduler=scheduler,continuation_updates=local_step,**extra)
     manager=tf.train.CheckpointManager(state,str(out/'checkpoints'),max_to_keep=2)
     elapsed=parent_record['elapsed_seconds']
     if (out/'checkpoint.json').exists():
         if not args.resume:raise FileExistsError('Use --resume for existing continuation')
         previous=json.loads((out/'checkpoint.json').read_text())
-        assert previous['config_sha256']==binding_hash and previous['source_sha256']==source_hash
+        assert previous['config_sha256']==binding_hash
+        if previous['source_sha256']!=source_hash:
+            # Only the listed earlier sources may be resumed; they share the training math (verified by hash).
+            assert previous['source_sha256'] in COMPATIBLE_SOURCES,'continuation source changed'
+            with (out/'source_changes.jsonl').open('a') as f:f.write(json.dumps(dict(from_source=previous['source_sha256'],
+                to_source=source_hash,at_continuation_updates=previous['continuation_updates'],reason=COMPATIBLE_SOURCES[previous['source_sha256']]))+'\n')
         state.restore(previous['checkpoint']).assert_consumed();elapsed=previous['elapsed_seconds']
     first_step=int(local_step.numpy());assert int(optimizer.iterations.numpy())==base_updates+first_step
     features=tf.constant(np.load(base/'preprocessing/features.npy',mmap_mode='r'))
@@ -108,6 +126,7 @@ def main():
         gradients=tape.gradient(loss,p.model.trainable_variables)
         gradients,norm=tf.clip_by_global_norm(gradients,cfg['gradient_clip'])
         optimizer.apply_gradients(zip(gradients,p.model.trainable_variables));local_step.assign_add(1)
+        loss_sum.assign_add(tf.cast(loss,tf.float64));loss_count.assign_add(1)
         return loss,norm
     @tf.function(input_signature=[tf.TensorSpec([None,11],tf.float32),tf.TensorSpec([None,11],tf.float32)])
     def validation_batch(x,y):return tf.reduce_sum(tf.abs(p.model(x,training=False)-y))
@@ -130,13 +149,21 @@ def main():
             source_sha256=source_hash,config_sha256=binding_hash,learning_rate=float(optimizer.learning_rate.numpy()),scheduler=get_scheduler())
         atomic_json(out/'checkpoint.json',r);atomic_json(out/'progress.json',r)
     if first_step==0:
-        v=validation();set_scheduler(dict(best=v,wait=0,cooldown=0));scheduler.best_model.assign(v)
-        (out/'best').mkdir(exist_ok=True);p.save(out/'best/model')
-        atomic_json(out/'best/selection.json',dict(epoch=base_epochs,validation_mae=v,selection='validation only',test_used=False,
-            model_sha256=sha(out/'best/model.keras'),metadata_sha256=sha(out/'best/model.json')))
+        v=validation();set_scheduler(dict(best=np.inf if train_monitor else v,wait=0,cooldown=0));scheduler.best_model.assign(v)
+        if not train_monitor:
+            (out/'best').mkdir(exist_ok=True);p.save(out/'best/model')
+            atomic_json(out/'best/selection.json',dict(epoch=base_epochs,validation_mae=v,selection='validation only',test_used=False,
+                model_sha256=sha(out/'best/model.keras'),metadata_sha256=sha(out/'best/model.json')))
         atomic_json(out/'parent_restored.json',dict(parent=parent_record,model_weights_exactly_match=True,
             adam_restored=True,optimizer_iterations=base_updates,validation_mae=v,continuation_batch_size=cfg['batch_size']))
         checkpoint()
+    # Best-validation weights are kept for every monitor. Runs that started without this copy (training-loss monitor)
+    # can only track the best epoch from the first resume that has it; best/tracking.json records that start epoch.
+    best_from=base_epochs+first_step//batches
+    if not (out/'best').exists():
+        (out/'best').mkdir();scheduler.best_model.assign(np.inf)
+        atomic_json(out/'best/tracking.json',dict(tracking_started_after_epoch=best_from,
+            note='best-validation copy covers epochs after this one only; earlier epochs were not saved'))
     print('CONTINUATION_START',base_epochs+first_step/batches,'->',cfg['epochs'],'batch',cfg['batch_size'],flush=True)
     last_epoch=-1;order=None
     for step in range(first_step,additional):
@@ -145,9 +172,11 @@ def main():
         ids=order[within*cfg['batch_size']:min((within+1)*cfg['batch_size'],n)]
         loss,norm=update(tf.constant(ids));completed=step+1
         if within==batches-1:
-            v=validation();s,new_lr=plateau_step(get_scheduler(),v,float(optimizer.learning_rate.numpy()),cfg['scheduler'])
+            v=validation();train_mean=float(loss_sum.numpy())/int(loss_count.numpy())
+            loss_sum.assign(0.);loss_count.assign(0)
+            s,new_lr=plateau_step(get_scheduler(),train_mean if train_monitor else v,float(optimizer.learning_rate.numpy()),cfg['scheduler'])
             set_scheduler(s);optimizer.learning_rate.assign(new_lr)
-            r=dict(epoch=epoch+1,validation_mae=v,learning_rate_next_epoch=new_lr,
+            r=dict(epoch=epoch+1,validation_mae=v,training_loss_epoch_mean=train_mean,learning_rate_next_epoch=new_lr,
                 optimizer_updates=base_updates+completed,elapsed_seconds=elapsed+time.perf_counter()-began)
             with (out/'validation_history.jsonl').open('a') as f:f.write(json.dumps(r)+'\n')
             if v<float(scheduler.best_model.numpy()):
@@ -174,7 +203,9 @@ def main():
         examples_per_epoch=n,examples_seen=n*cfg['epochs'],elapsed_seconds=elapsed+time.perf_counter()-began,
         model_sha256=sha(out/'model.keras'),metadata_sha256=sha(out/'model.json'),config_sha256=binding_hash,
         preprocessing_sha256=sha(root/'preprocessing/preprocessing.json'),source_sha256=source_hash,
-        physics=False,temperature_mode_at_evaluation='enthalpy',best_validation=float(scheduler.best_model.numpy()),
+        physics=False,temperature_mode_at_evaluation='enthalpy',
+        scheduler_monitor=cfg['scheduler']['monitor'],final_model='last epoch; best validation in best/',
+        best_validation=float(scheduler.best_model.numpy()),
         parent_epochs=base_epochs,parent_updates=base_updates,batch_size=cfg['batch_size'])
     atomic_json(out/'completed.json',record);atomic_json(out/'progress.json',record)
 

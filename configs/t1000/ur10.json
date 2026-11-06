@@ -1,0 +1,43 @@
+{
+  "method": "Liu et al. 2026 UR=10 fine-tune, pressure pinned, raw feedback (approaches 3/4)",
+  "parent_root": "results/t1000_gelu/g0.1",
+  "data": "results/t1000_unroll11",
+  "output": "results/t1000_ur10",
+  "validation_source": "results/t1000_long10ms_data/trajectories.npz",
+  "validation_window_stride": 10,
+  "gamma": 0.1,
+  "hidden_layers": [
+    1600,
+    800,
+    400
+  ],
+  "activation": "gelu",
+  "unroll": 10,
+  "loss": "Liu Eq. 5: sum over steps 0..10 of masked MAE on standardized increments",
+  "epochs": 100,
+  "batch_size": 512,
+  "learning_rate": 0.0001,
+  "lr_step": {
+    "every_epochs": 30,
+    "factor": 0.4
+  },
+  "gradient_clip": 5.0,
+  "snapshot_epochs": [
+    10,
+    25,
+    50,
+    75,
+    100
+  ],
+  "checkpoint_every_updates": 2000,
+  "require_gpu": true,
+  "seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "pin_pressure": true,
+  "physics_in_loop": false
+}

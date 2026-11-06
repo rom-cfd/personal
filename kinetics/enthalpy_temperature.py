@@ -47,4 +47,7 @@ def load_predictor(path):
     from .zhang_model import ZhangCommittee
     info=json.loads(Path(path).read_text());mode=info.pop('temperature_mode','raw')
     p=ZhangCommittee(**info)
+    if mode in ('wang','wang_noguard'):
+        from .zhang_wang import WangHardCorrection
+        return WangHardCorrection(p,guard=mode=='wang')
     return EnthalpyTemperature(p) if mode=='enthalpy' else p

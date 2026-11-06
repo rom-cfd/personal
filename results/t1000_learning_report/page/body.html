@@ -1,0 +1,335 @@
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.82rem;color:var(--ink-2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+.legend i.dash{border-top-style:dashed}
+.legend i.dot{width:10px;height:10px;border-radius:50%;border:0}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(13.5rem,1fr));gap:10px}
+.flow div{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;font-size:.87rem;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+.flow b{font-family:var(--display);font-size:1rem;color:var(--ink)}
+.flow .k{font-family:var(--mono);font-size:.74rem;color:var(--ink-3)}
+.next{display:flex;flex-direction:column;gap:10px;margin:0;padding-left:1.2rem;color:var(--ink-2);font-size:.93rem;max-width:82ch}
+.cases button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+tr.sel td{background:color-mix(in srgb,var(--good-bg) 70%,transparent)}
+td.grp{font-family:var(--body);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);text-align:left;background:var(--rule-2)}
+.good{color:var(--good)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(22rem,1fr));gap:12px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">H₂/air 0-D ignition · strategy 5 · uncertainty-triggered learning</div>
+  <h1>Online Learning Study</h1>
+  <p class="lede">When the five-member committee disagrees (R &gt; 0.3 before ignition), Cantera labels 1 000 new pairs from 100 perturbed starts × 100 steps and the members are fine-tuned. The question: should that knowledge be used online, per trajectory, or be consolidated into one offline model? The last experiment consolidates it with strategy 5's own 10-step physics-in-loop objective plus replay of the original data. Everything is compared against strategy 5 and the gated hybrid on the same 36 cases.</p>
+  <div class="facts">
+    <div><b>18 + 18</b><span>test + validation cases × 5 seeds</span></div>
+    <div><b>72</b><span>gym episodes (train + val ICs; test never visited)</span></div>
+    <div><b>138 000</b><span>Cantera-labelled gym pairs in round 1</span></div>
+    <div><b>Iterated rounds</b><span>gym → UR10 1:1, repeated until no R &gt; 0.3</span></div>
+    <div><b>val selects</b><span>test reported, never used to choose</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><h2>Findings</h2></div>
+  <div class="findings" id="findings"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Iterated rounds</h2><p>Each round: run the gym with the previous round's offline model (all 72 train + val cases, 2 passes; a data round when R &gt; 0.3 before ignition, plus one forced round at the first 50 K rise in every case that did not trigger), turn every new pair into an 11-step Cantera window, pool the windows of all rounds so far, add as many original UR10 windows (1:1), and continue UR10 physics-in-loop training from the previous round's members. Test cases are never visited. The loop ends when a round's gym finds no point with R &gt; 0.3.</p></div>
+  <div class="frame"><table id="rounds-conv"><thead><tr><th>Round</th><th>Gym run with</th><th>Triggered rounds (R &gt; 0.3), pass 1 + 2</th><th>Cases triggering</th><th>Forced rounds</th><th>New pairs</th><th>Training windows, gym + replay</th><th>10-step val loss ×10⁻³, start → best</th><th>Training</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+  <div class="sec-head" style="margin-top:18px"><h3>Offline results by round</h3><p>20 ms, each seed alone, Wang projection and enthalpy T. Test is held out. Validation cases are in the gym, so validation is in-sample for every round.</p></div>
+  <div class="frame"><table id="rounds-res"><thead><tr><th>Model</th><th>Test: ignition correct</th><th>τ₄₀₀ err. median</th><th>τ₄₀₀ err. mean</th><th>τ₄₀₀ err. max</th><th>T RMSE mean</th><th>Regular, T RMSE</th><th>Slow (#7, 69, 78), T RMSE</th><th>Without #7: T RMSE mean</th><th>Without #7: τ err. max</th><th>Val: T RMSE mean</th></tr></thead><tbody></tbody></table></div>
+  <div class="sec-head" style="margin-top:18px"><h3>Slow cases by round</h3><p>Median τ₄₀₀ error over the seeds that ignite · seeds igniting correctly out of 5 · mean T RMSE.</p></div>
+  <div class="frame"><table id="rounds-slow"><thead><tr><th>Model</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>The approaches</h2></div>
+  <div class="flow" id="flow"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Summary</h2><p>20-ms horizon, 90 runs per split (cases × seeds). "Regular" means the 31 cases that never trigger (median of each case's mean T RMSE). "Slow" means cases 7, 69, 78 on test and 9, 52 on validation (mean T RMSE). The highlighted row is the c chosen on validation.</p></div>
+  <div class="controls"><span class="ctl-label">Split</span><div class="seg" id="seg-split"><button data-v="test" aria-pressed="true">Test (held out)</button><button data-v="val" aria-pressed="false">Validation</button></div></div>
+  <div class="frame"><table id="summary"><thead><tr><th>Method</th><th>Ignition correct</th><th>τ₄₀₀ err. median</th><th>τ₄₀₀ err. mean</th><th>τ₄₀₀ err. max</th><th>T RMSE mean</th><th>Regular cases, T RMSE</th><th>Slow cases, T RMSE</th><th>ODE in rollout</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Test without case #7</h2><p>Strategy 5 never ignites #7 (0/5 seeds), so that case has no τ₄₀₀ error and its ~1 400 K T RMSE dominates every mean. Here #7 is removed: 17 test cases × 5 seeds = 85 runs. The EWC row is the c chosen on validation (c = 0). UR10 1:3 is the ratio chosen on validation and is shown for reference. "Slow" is now #69 and #78 only.</p></div>
+  <div class="frame"><table id="ex7"><thead><tr><th>Method</th><th>Ignition correct</th><th>τ₄₀₀ err. median</th><th>τ₄₀₀ err. mean</th><th>τ₄₀₀ err. max</th><th>T RMSE mean</th><th>Regular cases, T RMSE</th><th>#69 + #78, T RMSE</th><th>Cases better / worse than strategy 5</th></tr></thead><tbody></tbody></table></div>
+  <p class="muted" id="ex7-note" style="font-size:.88rem;max-width:82ch;margin:10px 0 0"></p>
+  <div class="sec-head" style="margin-top:18px"><h3>Per case, without #7</h3><p>Median τ₄₀₀ error over the 5 seeds · mean T RMSE. Green: more than 10% lower than strategy 5; red: more than 10% higher. Sorted by strategy 5's T RMSE.</p></div>
+  <div class="frame"><table id="ex7-cases"><thead><tr><th>Case</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>The consolidation trade-off</h2><p>Each point is one method. Down-left is better on both axes. The EWC line runs from c = 0 to c = 10. A stronger penalty protects the regular cases but gives back the slow-case gains, and no c reaches the online or hybrid corner.</p></div>
+  <div class="legend" id="tr-legend"></div>
+  <div class="two"><div class="chartbox" id="trade-test"></div><div class="chartbox" id="trade-val"></div></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Slow cases, method by method</h2><p>Median τ₄₀₀ error over the seeds that ignite · seeds igniting correctly out of 5 · mean T RMSE.</p></div>
+  <div class="frame"><table id="slow"><thead><tr><th>Method</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Temperature in the slow cases</h2><p>All five seeds per method. Dashed is the Cantera reference.</p></div>
+  <div class="cases" id="cases"></div>
+  <div class="controls">
+    <span class="ctl-label">Time axis</span><div class="seg" id="seg-ax"><button data-v="lin" aria-pressed="true">Linear, 0.5–1.5 τ_ref</button><button data-v="log" aria-pressed="false">Log, full 20 ms</button></div>
+    <div class="toggles" id="mtog"></div>
+  </div>
+  <div class="case-info" id="case-info"></div>
+  <div class="chartbox" id="ts"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Did the gym learn?</h2><p>Fine-tune rounds per episode, pass 1 vs pass 2, for every episode that triggered. If knowledge carried over, pass 2 would need far fewer rounds; in fact it needed 65 against 73.</p></div>
+  <div class="legend"><span><i class="dot" style="background:var(--s4)"></i>Pass 1</span><span><i class="dot" style="background:var(--s3)"></i>Pass 2</span></div>
+  <div class="chartbox" id="gym"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>UR10 consolidation with replay: training</h2><p>Each of the 138 000 gym pairs was re-integrated by Cantera for 11 steps, giving 10-step windows (step 1 matches the saved label to 2×10⁻⁶ K). These were mixed with randomly drawn windows from strategy 5's own 4.9 M UR10 training set at 1:1 or 1:3. Training continues strategy 5's recipe from its best-validation weights: 10-step unrolled MAE with Wang projection and enthalpy T inside the loop, pressure pinned, Adam 1e-5 (×0.4 at epoch 15), 30 epochs, best weights selected on the unrolled validation loss. Validation numbers are means over the 5 seeds.</p></div>
+  <div class="frame"><table id="urc"><thead><tr><th>Replay ratio</th><th>Windows</th><th>Unrolled val loss, start → best</th><th>One-step val MAE, start → best</th><th>Best epochs (5 seeds)</th><th>GPU time (5 seeds)</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>EWC training: what the one-step metrics said</h2><p>Mean over the 5 seeds at the selected epoch. The error on the original validation pairs never got worse for any c, yet the regular-case rollouts did. Protecting one-step accuracy is not the same as protecting rollout accuracy.</p></div>
+  <div class="frame"><table id="ewc"><thead><tr><th>c (λ·mean F)</th><th>Gym-pair val MAE</th><th>Original val MAE</th><th>Best epochs (5 seeds)</th><th>Regular T RMSE (test)</th><th>Slow T RMSE (test)</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Cost</h2></div>
+  <div class="frame"><table id="cost"><thead><tr><th>Method</th><th>ODE steps</th><th>Training</th><th>When the cost is paid</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Interpretation and next steps</h2></div>
+  <ul class="next">
+    <li><b>Per-trajectory online fine-tuning works.</b> It fixes all five slow cases, reaching 100% correct ignition with a median τ error matching strategy 5, without the ODE solver ever advancing the solution. It is still behind the gated hybrid on the longest inductions (#7, #9), and costs 11× more ODE steps (as training labels) plus about 40 CPU-minutes of fine-tuning.</li>
+    <li><b>One offline model does not absorb the knowledge well.</b> Sequential gym updates forgot: the regular cases degraded about 15×, and pass 2 needed nearly as many rounds as pass 1. Consolidating all gym data at once is much better: lower mean T RMSE than strategy 5 and the worst τ error cut from 172% to 29%. But it still loses accuracy in the regular cases, and EWC only moves along that trade-off.</li>
+    <li><b>The objective mismatch was the main problem.</b> Consolidating the same gym data with strategy 5's own 10-step physics-in-loop loss plus replay removes the forgetting: regular test cases become slightly better than strategy 5. Every summary measure on the held-out test improves.</li>
+    <li><b>What is still missing offline is the very long induction.</b> Case 7 (5.3 ms) ignites in 2 of 5 seeds and #69 is at about 10% τ error. A 10-step window covers 20 µs, while case 7's induction is about 2 600 steps; small per-step biases that windows of this length cannot see still add up.</li>
+    <li><b>Possible next steps.</b> (1) Longer unroll windows, or more gym passes with replay, concentrated on the 1000–1060 K induction region. (2) A coarser time step for the induction regime, so that each step's change is larger than the model's error. (3) A pragmatic combination: deploy the UR10-consolidated model offline and keep the disagreement gate as a safety net for the rare long-induction states.</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Definitions</h2></div>
+  <dl>
+    <dt>Trigger and round</dt><dd>R &gt; 0.3 (20 µs rolling median) while some seed is below T₀ + 50 K. A round takes 100 starts perturbed around the seeds' states (T ± 5 K, mass fractions scaled by a log-normal factor with σ = 10%), runs Cantera for 100 steps of 2 µs each, keeps a random 1 000 pairs (900 to train, 100 to validate), and fine-tunes all 5 members.</dd>
+    <dt>Fine-tune (online, gym)</dt><dd>MAE on standardized increments (the pretraining loss, pressure pinned) + 10⁻³·Σ(θ−θ₀)² (L2-SP), Adam 1e-5, batch 100, up to 200 epochs, patience 30, keeping the best-validation weights. 1e-5 was chosen on validation case 52; 1e-4 did not learn.</dd>
+    <dt>Gym</dt><dd>72 train + val initial conditions, 2 shuffled passes. Weights carry across episodes, and the L2-SP anchor is the original weights. Snapshots are taken at the end of each pass.</dd>
+    <dt>EWC consolidation</dt><dd>One fine-tune from the strategy-5 weights on all 138 000 gym pairs (10% of rounds held out) with MAE + λ·Σ Fᵢ(θᵢ−θ₀ᵢ)². F is the diagonal empirical Fisher of the pretraining loss on 20 000 original training pairs, with λ = c / mean(F). Adam 1e-5, batch 256, up to 40 epochs. The epoch is selected on the mean of the relative gym-validation and original-validation MAE.</dd>
+    <dt>Selection</dt><dd>c is chosen by the lowest validation mean 20-ms T RMSE, with ignition classification as the tie-break; this rule was fixed before the test numbers were seen. Validation cases are in-gym; test cases were never visited by any learning step.</dd>
+    <dt>Offline</dt><dd>Each seed rolls out alone with Wang projection and enthalpy temperature, exactly as strategy 5: no committee, no updates, no ODE.</dd>
+  </dl>
+</section>
+
+<footer>
+  <div>Code: <code>kinetics/t1000_online_finetune.py</code>, <code>t1000_gym.py</code>, <code>t1000_ewc.py</code>, <code>t1000_learning_report.py</code>; jobs 132817/132818 (online), 132821 (gym), 132825 (EWC).</div>
+  <div>Results: <code>results/t1000_online_ft/</code>, <code>results/t1000_gym/</code>, <code>results/t1000_ewc/c*/g0.1/</code>, <code>results/t1000_learning_report/summary.csv</code>.</div>
+</footer>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+const D=JSON.parse(document.getElementById('data').textContent);const S=D.summary,C=D.cases,BEST='ewc_'+D.best_c,CO=D.cost;
+const NS='http://www.w3.org/2000/svg',SEEDS=[11,22,33,44,55];
+const el=(t,a={},h='')=>{const e=document.createElement(t);for(const k in a)e.setAttribute(k,a[k]);if(h)e.innerHTML=h;return e};
+const sv=(t,a={})=>{const e=document.createElementNS(NS,t);let st='';for(const k in a){const v=String(a[k]);if((k==='fill'||k==='stroke')&&v.startsWith('var('))st+=`${k}:${v};`;else e.setAttribute(k,v)}if(st)e.setAttribute('style',st+(e.getAttribute('style')||''));return e};
+const txt=(s,a,t)=>{const e=sv('text',a);e.textContent=t;s.append(e);return e};
+const pct=(x,d=1)=>x==null||isNaN(x)?'–':(x*100).toFixed(d)+'%';
+const K=x=>x==null||isNaN(x)?'–':(x>=100?x.toFixed(0):x>=10?x.toFixed(1):x.toFixed(2))+' K';
+const NAME={s5:'Strategy 5',hybrid:'Gated hybrid',online:'Online fine-tune (per case)',gym1:'Gym pass 1 → offline',gym2:'Gym pass 2 → offline',
+  ewc_c0:'One-step consolidation, c = 0',urc_r1:'UR10 consolidation, replay 1:1 (round 1)',urc_r3:'UR10 consolidation, replay 1:3',['ewc_c0.01']:'EWC, c = 0.01',['ewc_c0.1']:'EWC, c = 0.1',ewc_c1:'EWC, c = 1',ewc_c10:'EWC, c = 10'};
+const ORDER=['s5','hybrid','online','gym1','gym2','ewc_c0','ewc_c0.01','ewc_c0.1','ewc_c1','ewc_c10','urc_r1','urc_r3'];
+const RKS=Object.keys(S).filter(k=>k.startsWith('round')).sort((a,b_)=>+a.slice(5)-+b_.slice(5));const RL=RKS[RKS.length-1];
+RKS.forEach(k=>{NAME[k]=`Round ${k.slice(5)}: UR10 1:1 from round ${+k.slice(5)-1}`;ORDER.push(k)});const BU='urc_'+D.best_urc;
+const ODE={s5:'none',hybrid:'1.7% of steps',online:'none (labels only)',gym1:'none',gym2:'none'};
+const COL={s5:'var(--s2)',hybrid:'var(--s1)',online:'var(--s3)',gym2:'var(--s4)',ewc:'var(--s5)',urc:'var(--ink)',urc1:'var(--h3)',round:'var(--h5)'};RKS.forEach(k=>COL[k]='var(--h5)');
+const SPL={test:[7,69,78],val:[9,52]};
+
+/* findings */
+const t=S,b=S[BEST];
+const F=[
+ ...(RL?[(()=>{const n=+RL.slice(5),P=RKS.length>1?RKS[RKS.length-2]:'urc_r1',a=S[P].test,b=S[RL].test,z=S.s5.test,R=D.rounds,tg=m=>R[m-1]&&R[m-1].gym_stats&&R[m-1].gym_stats.complete?R[m-1].gym_stats.triggered:null,t=R[n-1].train_stats;
+   return {k:`${K(z.T_reg_med)} → ${K(b.T_reg_med)}`,h:`Round ${n}: repeating gym → UR10 1:1 keeps improving the offline model, including the regular cases`,
+   p:`Round ${n} adds every train/val case to the gym (forced rounds) and trains on ${(t.gym_windows/1000).toFixed(0)}k pooled gym windows plus 1:1 replay. Held-out test, round ${n-1} → round ${n}: regular-case T RMSE ${K(a.T_reg_med)} → ${K(b.T_reg_med)} (strategy 5: ${K(z.T_reg_med)}), median τ error ${pct(a.tau_med,2)} → ${pct(b.tau_med,2)}, mean T RMSE ${K(a.T_mean)} → ${K(b.T_mean)}, slow cases ${K(a.T_slow_mean)} → ${K(b.T_slow_mean)}, ignition ${pct(a.cls)} → ${pct(b.cls)}. Case 7 ignites in ${C[RL][7].ok}/5 seeds. Triggered gym rounds: ${tg(n-1)} → ${tg(n)}${tg(n+1)!=null?` → ${tg(n+1)} (round ${n+1})`:''}.`}})()]:[]),
+ {k:`${pct(t.online.test.cls,0)}`,h:'Per-case online fine-tuning fixes the slow cases',p:`Every test rollout ignites correctly, against ${pct(t.s5.test.cls)} for strategy 5. Mean T RMSE falls from ${K(t.s5.test.T_mean)} to ${K(t.online.test.T_mean)} and the worst τ₄₀₀ error from ${pct(t.s5.test.tau_max,0)} to ${pct(t.online.test.tau_max)}, with no ODE in the rollout. The gated hybrid is still better: ${K(t.hybrid.test.T_mean)}.`},
+ {k:`${CO.gym_rounds[1]} → ${CO.gym_rounds[2]}`,h:'The sequential gym barely retains anything',p:`Pass 2 needed nearly as many fine-tune rounds as pass 1. The end-of-pass model, run offline, degrades the regular test cases from ${K(t.s5.test.T_reg_med)} to ${K(t.gym2.test.T_reg_med)} median T RMSE, and slow cases 7 and 9 still fail. Local 1 000-pair updates overwrite one another.`},
+ {k:`${K(b.test.T_mean)}`,h:'One-shot consolidation of all gym data helps on average',p:`Retraining once on all 138 000 pairs (c = ${D.best_c.slice(1)}, chosen on validation) beats strategy 5 offline on mean T RMSE (${K(t.s5.test.T_mean)} → ${K(b.test.T_mean)}) and worst τ error (${pct(t.s5.test.tau_max,0)} → ${pct(b.test.tau_max,0)}). It is worse on median τ error (${pct(t.s5.test.tau_med)} → ${pct(b.test.tau_med)}) and in the regular cases (${K(t.s5.test.T_reg_med)} → ${K(b.test.T_reg_med)}).`},
+ {k:`${pct(S[BU].test.tau_max,0)}`,h:'UR10 consolidation with replay is the first offline model better than strategy 5 on every summary measure',p:`Same objective as strategy 5 (10-step unroll, physics in the loop) plus 1:${D.best_urc.slice(1)} replay, chosen on validation. On held-out test: ignition ${pct(S.s5.test.cls)} → ${pct(S[BU].test.cls)}, median τ error ${pct(S.s5.test.tau_med,2)} → ${pct(S[BU].test.tau_med,2)}, worst ${pct(S.s5.test.tau_max,0)} → ${pct(S[BU].test.tau_max,0)}, mean T RMSE ${K(S.s5.test.T_mean)} → ${K(S[BU].test.T_mean)}. Regular cases: ${K(S.s5.test.T_reg_med)} → ${K(S[BU].test.T_reg_med)}, so nothing is forgotten.`},
+ {k:`${C[BU][7].ok}/5`,h:'The longest induction is still not learned offline',p:`Case 7 (T₀ 1026 K, 5.3 ms) ignites in only ${C[BU][7].ok} of 5 seeds offline (${pct(C[BU][7].tau)} error), and #69 is at ${pct(C[BU][69].tau)} against ${pct(C.online[69].tau)} online. Per-case online fine-tuning and the gated hybrid still win on the slow cases: slow-case T RMSE ${K(S[BU].test.T_slow_mean)} offline, ${K(S.online.test.T_slow_mean)} online, ${K(S.hybrid.test.T_slow_mean)} hybrid.`},
+ {k:'trade-off',h:'One-step EWC moves along the trade-off but does not escape it',p:`Raising c from 0 to 10 cuts regular-case error on test (${K(S.ewc_c0.test.T_reg_med)} → ${K(S.ewc_c10.test.T_reg_med)}) but raises slow-case error (${K(S.ewc_c0.test.T_slow_mean)} → ${K(S.ewc_c10.test.T_slow_mean)}). The one-step error on the original validation pairs never got worse; the rollout quality did.`},
+];
+const fd=document.getElementById('findings');F.forEach(f=>fd.append(el('div',{class:'finding'},`<div class="k">${f.k}</div><h3>${f.h}</h3><p>${f.p}</p>`)));
+
+/* flow */
+[['Strategy 5','reference','The best-validation UR10 physics-in-loop members, each seed alone, with Wang projection and enthalpy T.'],
+ ['Gated hybrid','ODE in the loop','When R > 0.3 before ignition, Cantera advances the state until T has risen 50 K, then the network takes over.'],
+ ['Online fine-tune','per trajectory','On each trigger: 1 000 Cantera-labelled pairs, then fine-tune all 5 members and continue. Weights reset for every case.'],
+ ['Gym → offline','sequential','The same rounds over 72 train/val episodes, 2 passes, weights carried over. The final weights then roll out offline.'],
+ ['Consolidation / EWC','one-shot, one-step loss','Fine-tune once on all 138 000 gym pairs with an EWC penalty (c = 0…10), then roll out offline.'],
+ ['UR10 consolidation + replay','one-shot, strategy-5 loss','Gym pairs become 11-step Cantera windows, mixed 1:1 or 1:3 with original UR10 windows. Strategy-5 training continues (unrolled, physics in the loop), then offline rollouts.']]
+ .forEach(([h,k,p])=>document.getElementById('flow').append(el('div',{},`<b>${h}</b><span class="k">${k}</span><span>${p}</span>`)));
+
+/* summary */
+let split='test';
+function seg(id,cb){const s=document.getElementById(id);s.addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;s.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===bt));cb(bt.dataset.v)})}
+seg('seg-split',v=>{split=v;renderSummary()});
+function renderSummary(){const tb=document.querySelector('#summary tbody');tb.innerHTML='';
+  const grp={s5:'Reference',online:'Online (uses the ODE during the run)',gym1:'Offline final models (no ODE, no updates)'};if(RKS.length)grp[RKS[0]]='Iterated rounds (offline)';
+  ORDER.forEach(k=>{if(!S[k])return;if(grp[k])tb.append(el('tr',{},`<td class="grp" colspan="9">${grp[k]}</td>`));const r=S[k][split];
+    const tr=el('tr',k===BEST||k===BU?{class:'sel'}:{});tr.innerHTML=`<td class="name">${NAME[k]}${k===BEST||k===BU?' <span class="tag phys">chosen on val</span>':''}</td><td>${pct(r.cls)}</td><td>${pct(r.tau_med,2)}</td><td>${pct(r.tau_mean,2)}</td><td>${pct(r.tau_max,1)}</td><td>${K(r.T_mean)}</td><td>${K(r.T_reg_med)}</td><td>${K(r.T_slow_mean)}</td><td style="font-family:var(--body);font-size:.82rem">${ODE[k]||'none'}</td>`;tb.append(tr)})}
+renderSummary();
+
+/* trade-off scatter */
+function trade(id,sp){const box=document.getElementById(id);box.append(el('div',{class:'tip',hidden:''}));const tip=box.querySelector('.tip');
+  const W=440,H=330,L=58,R=14,T=26,B=46,xlo=0.3,xhi=30,ylo=5,yhi=1500;
+  const x=v=>L+(Math.log10(v)-Math.log10(xlo))/(Math.log10(xhi)-Math.log10(xlo))*(W-L-R),y=v=>H-B-(Math.log10(v)-Math.log10(ylo))/(Math.log10(yhi)-Math.log10(ylo))*(H-B-T);
+  const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`Regular versus slow case error, ${sp}`});
+  txt(s,{x:L,y:14,style:'font-family:var(--body);font-weight:600;fill:var(--ink)'},sp==='test'?'Test (held out)':'Validation');
+  [0.3,1,3,10,30].forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:H-B,class:'grid'}));txt(s,{x:x(v),y:H-B+15,'text-anchor':'middle'},v)});
+  [10,100,1000].forEach(v=>{s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-6,y:y(v)+4,'text-anchor':'end'},v)});
+  txt(s,{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'axis-title'},'Regular cases: median T RMSE (K, log)');
+  txt(s,{x:-(T+H-B)/2,y:13,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'Slow cases: mean T RMSE (K, log)');
+  const cl=v=>Math.max(xlo,Math.min(xhi,v)),cy=v=>Math.max(ylo,Math.min(yhi,v));
+  const ew=['ewc_c0','ewc_c0.01','ewc_c0.1','ewc_c1','ewc_c10'].filter(k=>S[k]);
+  s.append(sv('path',{d:ew.map((k,j)=>`${j?'L':'M'}${x(cl(S[k][sp].T_reg_med)).toFixed(1)},${y(cy(S[k][sp].T_slow_mean)).toFixed(1)}`).join(''),fill:'none',stroke:COL.ewc,'stroke-width':2,'stroke-opacity':.6}));
+  const pts=[['s5','s5'],['hybrid','hybrid'],['online','online'],['gym1','gym2'],['gym2','gym2'],...ew.map(k=>[k,'ewc']),...['urc_r1','urc_r3'].filter(k=>S[k]).map(k=>[k,'urc']),...RKS.map(k=>[k,'round'])];
+  pts.forEach(([k,c])=>{const r=S[k][sp];const px=x(cl(r.T_reg_med)),py=y(cy(r.T_slow_mean));
+    const m=c==='urc'?sv('rect',{x:px-6,y:py-6,width:12,height:12,rx:1,transform:`rotate(45 ${px} ${py})`,fill:k===BU?COL.urc:'var(--panel)',stroke:k===BU?'var(--panel)':COL.urc,'stroke-width':2}):k===BEST?sv('rect',{x:px-6,y:py-6,width:12,height:12,rx:2,fill:COL[c],stroke:'var(--panel)','stroke-width':2}):sv('circle',{cx:px,cy:py,r:k==='gym1'?4:5.5,fill:k==='gym1'?'var(--panel)':COL[c],stroke:k==='gym1'?COL[c]:'var(--panel)','stroke-width':2});
+    const hit=sv('circle',{cx:px,cy:py,r:11,fill:'transparent',tabindex:0});s.append(m,hit);
+    const lbl={s5:'strategy 5',hybrid:'hybrid',online:'online',gym1:'gym p1',gym2:'gym p2',ewc_c0:'c=0',ewc_c10:'c=10',urc_r1:'UR10 1:1',urc_r3:'UR10 1:3'}[k]||(k.startsWith('round')?'round '+k.slice(5):null);
+    if(lbl)txt(s,{x:px+8,y:py-7,style:'font-family:var(--body);font-size:11px;fill:var(--ink-2)'},lbl);
+    const show=()=>{tip.hidden=false;tip.innerHTML=`<div class="t">${NAME[k]}</div><div class="row"><span>Regular median T RMSE</span><span>${K(r.T_reg_med)}</span></div><div class="row"><span>Slow mean T RMSE</span><span>${K(r.T_slow_mean)}</span></div><div class="row"><span>Ignition correct</span><span>${pct(r.cls)}</span></div><div class="row"><span>τ err. median / max</span><span>${pct(r.tau_med)} / ${pct(r.tau_max,0)}</span></div>`;
+      const bb=box.getBoundingClientRect(),mb=m.getBoundingClientRect();let lx=mb.right-bb.left+8;if(lx+230>bb.width)lx=mb.left-bb.left-238;tip.style.left=Math.max(4,lx)+'px';tip.style.top=Math.max(4,mb.top-bb.top-10)+'px'};
+    hit.addEventListener('mouseenter',show);hit.addEventListener('focus',show);hit.addEventListener('mouseleave',()=>tip.hidden=true);hit.addEventListener('blur',()=>tip.hidden=true)});
+  box.prepend(s)}
+trade('trade-test','test');trade('trade-val','val');
+document.getElementById('tr-legend').innerHTML=`<span><i class="dot" style="background:${COL.s5}"></i>Strategy 5</span><span><i class="dot" style="background:${COL.hybrid}"></i>Gated hybrid</span><span><i class="dot" style="background:${COL.online}"></i>Online per case</span><span><i class="dot" style="background:${COL.gym2}"></i>Gym (hollow: pass 1)</span><span><i class="dot" style="background:${COL.ewc}"></i>One-step EWC c sweep (square: chosen)</span><span><i class="dot" style="background:${COL.urc};border-radius:1px;transform:rotate(45deg)"></i>UR10 consolidation + replay (filled: chosen)</span>`;
+
+/* test without case 7 */
+(function(){const E=D.excl7,ids=D.test_ids_excl7,EK='ewc_'+D.best_c,ks=['s5',EK,'urc_r1','urc_r3'].filter(k=>E[k]);
+  const nm=k=>k===EK?`EWC consolidation, c = ${D.best_c.slice(1)} <span class="tag phys">chosen on val</span>`:k==='urc_r3'?`${NAME[k]} <span class="muted">(chosen on val; reference)</span>`:NAME[k];
+  const cmp=(a,b)=>a<.9*b?1:a>1.1*b?-1:0;
+  const cnt=k=>{let g=0,w=0;ids.forEach(i=>{const c=cmp(C[k][i].T,C.s5[i].T);if(c>0)g++;if(c<0)w++});return `${g} / ${w} of ${ids.length}`};
+  const tb=document.querySelector('#ex7 tbody');
+  [['Without #7: 17 cases, 85 runs',k=>E[k],true],['All 18 test cases, 90 runs (as in the summary)',k=>S[k].test,false]].forEach(([g,f,first])=>{
+    tb.append(el('tr',{},`<td class="grp" colspan="9">${g}</td>`));
+    ks.forEach(k=>{const r=f(k);const tr=el('tr',first&&k==='urc_r1'?{class:'sel'}:{});
+      tr.innerHTML=`<td class="name">${nm(k)}</td><td>${pct(r.cls)}</td><td>${pct(r.tau_med,2)}</td><td>${pct(r.tau_mean,2)}</td><td>${pct(r.tau_max,1)}</td><td>${K(r.T_mean)}</td><td>${K(r.T_reg_med)}</td><td>${K(r.T_slow_mean)}</td><td>${first&&k!=='s5'?cnt(k):'–'}</td>`;tb.append(tr)})});
+  const s5=E.s5,u=E.urc_r1,e=E[EK];
+  document.getElementById('ex7-note').innerHTML=`Without #7, UR10 1:1 against strategy 5: median τ error ${pct(s5.tau_med,2)} → ${pct(u.tau_med,2)}, worst ${pct(s5.tau_max,0)} → ${pct(u.tau_max,1)}, mean T RMSE ${K(s5.T_mean)} → ${K(u.T_mean)}. Almost all of that comes from #69 and #78 (${K(s5.T_slow_mean)} → ${K(u.T_slow_mean)}). On the regular cases it is on par with strategy 5 (${K(s5.T_reg_med)} → ${K(u.T_reg_med)}). The EWC model also helps #69 and #78 (${K(e.T_slow_mean)}), but it is about ${(e.T_reg_med/s5.T_reg_med).toFixed(0)}× worse on the regular cases (${K(e.T_reg_med)}) and more than doubles the median τ error (${pct(e.tau_med,2)}). Better / worse counts compare each case's mean T RMSE with a ±10% band.`;
+  const hd=document.querySelector('#ex7-cases thead tr');
+  ks.forEach(k=>hd.append(el('th',{},k===EK?`EWC c = ${D.best_c.slice(1)}`:({s5:'Strategy 5',urc_r1:'UR10 1:1',urc_r3:'UR10 1:3'}[k]||'Round '+k.slice(5)))));
+  const ct=document.querySelector('#ex7-cases tbody');const cl=x=>x>0?'good':x<0?'bad':'';
+  [...ids].sort((a,b)=>C.s5[b].T-C.s5[a].T).forEach(i=>{const tr=el('tr',{});
+    tr.innerHTML=`<td class="name">#${i}${[69,78].includes(i)?' <span class="muted">slow</span>':''}</td>`+ks.map(k=>{const c=C[k][i],b=C.s5[i];
+      const cT=k==='s5'?0:cmp(c.T,b.T),cu=k==='s5'||c.tau==null||b.tau==null?0:cmp(c.tau,b.tau);
+      return `<td><span class="${cl(cu)}">${pct(c.tau,1)}</span> · <span class="${cl(cT)}">${K(c.T)}</span>${c.ok<5?` <span class="bad">${c.ok}/5</span>`:''}</td>`}).join('');ct.append(tr)})})();
+
+/* iterated rounds */
+(function(){const RD=D.rounds||[];if(!RD.length)return;
+  const tb=document.querySelector('#rounds-conv tbody');
+  RD.forEach(r=>{const g=r.gym_stats,t=r.train_stats;
+    const st=g&&g.complete&&g.triggered===0?'<span class="good">converged: no R &gt; 0.3</span>':r.evaluated?'evaluated':t?'evaluating':g&&g.complete?'training':g?'gym running':'queued';
+    const tr=el('tr',{});
+    tr.innerHTML=`<td class="name">Round ${r.n}</td><td>${r.n===1?'Strategy 5':'Round '+(r.n-1)}</td>`+
+      `<td>${g?`${g.triggered} <span class="muted">(${g.triggered_by_pass[1]||0} + ${g.triggered_by_pass[2]||0})${g.complete?'':` · so far, ${g.episodes}/144 episodes`}</span>`:'–'}</td>`+
+      `<td>${g?Object.keys(g.triggered_cases).length:'–'}</td><td>${g?g.forced:'–'}</td><td>${g?(g.pairs/1000).toFixed(0)+'k':'–'}</td>`+
+      `<td>${t?`${(t.gym_windows/1000).toFixed(0)}k + ${((t.windows-t.gym_windows)/1000).toFixed(0)}k`:'–'}</td>`+
+      `<td>${t?`${(t.val_unrolled_parent*1e3).toFixed(2)} → ${(t.val_unrolled_best*1e3).toFixed(2)}`:'–'}</td>`+
+      `<td>${t?(t.seconds/3600).toFixed(1)+' GPU-h':'–'}</td><td>${st}</td>`;tb.append(tr)});
+  const keys=['s5',...RD.filter(r=>r.evaluated).map(r=>r.key)];
+  const lab=k=>k==='s5'?'Strategy 5 (round 0)':k==='urc_r1'?'Round 1: UR10 1:1':`Round ${k.slice(5)}`;
+  const rb=document.querySelector('#rounds-res tbody');
+  keys.forEach((k,j)=>{const r=S[k].test,e=D.excl7[k],v=S[k].val;const tr=el('tr',j===keys.length-1&&j>0?{class:'sel'}:{});
+    tr.innerHTML=`<td class="name">${lab(k)}</td><td>${pct(r.cls)}</td><td>${pct(r.tau_med,2)}</td><td>${pct(r.tau_mean,2)}</td><td>${pct(r.tau_max,1)}</td><td>${K(r.T_mean)}</td><td>${K(r.T_reg_med)}</td><td>${K(r.T_slow_mean)}</td><td>${e?K(e.T_mean):'–'}</td><td>${e?pct(e.tau_max,1):'–'}</td><td>${K(v.T_mean)}</td>`;rb.append(tr)});
+  const ids=[7,69,78,9,52],hd=document.querySelector('#rounds-slow thead tr');
+  ids.forEach(i=>hd.append(el('th',{},`#${i} <span class="muted">${[7,69,78].includes(i)?'test':'val'}</span>`)));
+  const sb=document.querySelector('#rounds-slow tbody');
+  keys.forEach(k=>{const tr=el('tr',{});tr.innerHTML=`<td class="name">${lab(k)}</td>`+ids.map(i=>{const c=C[k][i];
+    return `<td><span class="${c.ok<5?'bad':''}">${pct(c.tau)} · ${c.ok}/5</span><br><span class="muted" style="font-size:.78rem">${K(c.T)}</span></td>`}).join('');sb.append(tr)})})();
+
+/* slow table */
+(function(){const tb=document.querySelector('#slow tbody'),hd=document.querySelector('#slow thead tr');const ids=[7,69,78,9,52];
+  ids.forEach(i=>hd.append(el('th',{},`#${i} <span class="muted">${[7,69,78].includes(i)?'test':'val'}</span>`)));
+  ['s5','hybrid','online','gym2','ewc_c0','ewc_c0.01','ewc_c1','ewc_c10','urc_r1','urc_r3',...RKS].forEach(k=>{const tr=el('tr',k===BEST||k===BU?{class:'sel'}:{});tr.innerHTML=`<td class="name">${NAME[k]}</td>`+ids.map(i=>{const c=C[k][i];
+    return `<td><span class="${c.ok<5?'bad':''}">${pct(c.tau)} · ${c.ok}/5</span><br><span class="muted" style="font-size:.78rem">${K(c.T)}</span></td>`}).join('');tb.append(tr)})})();
+
+/* traces */
+(function(){const box=document.getElementById('ts');box.append(el('div',{class:'tip',hidden:''}));
+  let cur='69',ax='lin';const on={s5:true,hybrid:false,online:true,gym2:false,ewc:false,urc:false,urc1:true};if(RL)on[RL]=true;
+  const LAB={s5:'Strategy 5',hybrid:'Gated hybrid',online:'Online per case',gym2:'Gym pass 2 (offline)',ewc:`One-step consolidation c = ${D.best_c.slice(1)} (offline)`,urc:`UR10 consolidation 1:${D.best_urc.slice(1)} (offline)`,urc1:'Round 1: UR10 1:1 (offline)'};if(RL)LAB[RL]=`Round ${RL.slice(5)} (offline, latest)`;
+  const tg=document.getElementById('mtog');Object.keys(on).forEach(k=>{const l=el('label',{},`<input type="checkbox" ${on[k]?'checked':''}><span class="sw" style="background:${COL[k]};margin:0"></span>${LAB[k]}`);l.querySelector('input').onchange=e=>{on[k]=e.target.checked;draw()};tg.append(l)});
+  const chips=document.getElementById('cases');['7','69','78','9','52'].forEach(i=>{const bt=el('button',{'aria-pressed':i===cur},`#${i} ${D.traces[i].split}`);bt.onclick=()=>{cur=i;chips.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',q===bt));draw()};chips.append(bt)});
+  seg('seg-ax',v=>{ax=v;draw()});
+  function draw(){const d=D.traces[cur],tau=d.tau,dt=2e-6;box.querySelector('svg')?.remove();const tt=d.idx.map(i=>i*dt);
+    const W=860,H=400,L=64,R=16,T=12,B=44;let lo,hi,x;
+    if(ax==='lin'){lo=.5*tau;hi=1.5*tau;x=v=>L+(v-lo)/(hi-lo)*(W-L-R)}else{lo=2e-6;hi=2e-2;x=v=>L+(Math.log10(v)-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo))*(W-L-R)}
+    const keep=tt.map(v=>v>=lo&&v<=hi);const ylo=Math.floor((d.T0-50)/100)*100,yhi=Math.ceil((Math.max(...d.ref)+80)/100)*100;
+    const y=v=>T+(H-T-B)*(1-(Math.max(ylo,Math.min(yhi,v))-ylo)/(yhi-ylo));
+    const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`Temperature for case ${cur}`});
+    const step=yhi-ylo>1200?500:250;for(let v=Math.ceil(ylo/step)*step;v<=yhi;v+=step){s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},v)}
+    const ticks=ax==='lin'?[0,1,2,3,4,5].map(k=>lo+k*(hi-lo)/5):[2e-6,1e-5,1e-4,1e-3,1e-2];
+    ticks.forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:H-B,class:'grid'}));txt(s,{x:x(v),y:H-B+16,'text-anchor':'middle'},v<1e-3?`${(v*1e6).toFixed(0)} µs`:`${(v*1e3).toFixed(ax==='lin'?3:0).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'')} ms`)});
+    s.append(sv('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,class:'base'}));
+    txt(s,{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'axis-title'},ax==='lin'?'Time (linear, 0.5–1.5 τ_ref)':'Time (log)');
+    txt(s,{x:-(T+H-B)/2,y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'T (K)');
+    const path=v=>{let p='',pen=false;v.forEach((q,j)=>{if(!keep[j]||q==null){pen=false;return}p+=`${pen?'L':'M'}${x(tt[j]).toFixed(1)},${y(q).toFixed(1)}`;pen=true});return p};
+    Object.keys(on).forEach(k=>{if(!on[k])return;d[k].forEach(v=>s.append(sv('path',{d:path(v),fill:'none',stroke:COL[k],'stroke-width':1.6,'stroke-opacity':.85})))});
+    s.append(sv('path',{d:path(d.ref),fill:'none',stroke:'var(--ref)','stroke-width':2.2,'stroke-dasharray':'6 4'}));
+    if(tau>=lo&&tau<=hi){s.append(sv('line',{x1:x(tau),x2:x(tau),y1:T,y2:H-B,stroke:'var(--ink-3)','stroke-width':1}));txt(s,{x:x(tau)+4,y:T+12,style:'font-family:var(--body);fill:var(--ink-3)'},'τ_ref')}
+    const tip=box.querySelector('.tip');const ch=sv('line',{y1:T,y2:H-B,stroke:'var(--ink-2)','stroke-width':1,visibility:'hidden'});s.append(ch);
+    const hit=sv('rect',{x:L,y:T,width:W-R-L,height:H-T-B,fill:'transparent'});s.append(hit);
+    hit.addEventListener('mousemove',ev=>{const pt=s.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(s.getScreenCTM().inverse());
+      let j=-1,bd=1e9;tt.forEach((q,i)=>{if(!keep[i])return;const dd=Math.abs(x(q)-p.x);if(dd<bd){bd=dd;j=i}});if(j<0)return;
+      ch.setAttribute('x1',x(tt[j]));ch.setAttribute('x2',x(tt[j]));ch.setAttribute('visibility','visible');
+      const tl=tt[j]<1e-3?`${(tt[j]*1e6).toFixed(0)} µs`:`${(tt[j]*1e3).toFixed(3)} ms`;
+      tip.hidden=false;tip.innerHTML=`<div class="t">Case ${cur} · t = ${tl}</div><div class="row"><span>Reference</span><span>${K(d.ref[j])}</span></div>`+Object.keys(on).filter(k=>on[k]).map(k=>{const v=d[k].map(a=>a[j]).filter(q=>q!=null).sort((a,b_)=>a-b_);return `<div class="row"><span><i class="sw" style="background:${COL[k]};width:10px;height:10px"></i>${LAB[k]}</span><span>${K(v[0])}–${K(v[v.length-1])}</span></div>`}).join('');
+      const bb=box.getBoundingClientRect();let lx=ev.clientX-bb.left+16;if(lx+320>bb.width)lx=ev.clientX-bb.left-330;tip.style.left=Math.max(4,lx)+'px';tip.style.top=Math.max(4,ev.clientY-bb.top-40)+'px'});
+    hit.addEventListener('mouseleave',()=>{tip.hidden=true;ch.setAttribute('visibility','hidden')});box.prepend(s);
+    const ci=i=>C;document.getElementById('case-info').innerHTML=`<b>Case ${cur}</b> (${d.split}) · T₀ = ${d.T0.toFixed(0)} K, τ_ref = ${(tau*1e3).toPrecision(3)} ms · online rounds: ${CO.online_rounds[cur]} · seed range shown per method in the tooltip`;
+  }
+  draw()})();
+
+/* gym chart */
+(function(){const box=document.getElementById('gym');box.append(el('div',{class:'tip',hidden:''}));const tip=box.querySelector('.tip');
+  const E=D.gym_episodes;const ids=[...new Set(E.map(e=>e.case))].sort((a,b_)=>E.find(e=>e.case===a).T0-E.find(e=>e.case===b_).T0);
+  const W=860,H=280,L=50,R=14,T=12,B=50,mx=Math.max(...E.map(e=>e.rounds));const bw=(W-L-R)/ids.length;const y=v=>H-B-(v/Math.ceil(mx/5)/5)*(H-B-T);
+  const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Gym rounds per episode, pass 1 versus pass 2'});
+  for(let v=0;v<=Math.ceil(mx/5)*5;v+=5){s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-6,y:y(v)+4,'text-anchor':'end'},v)}
+  txt(s,{x:-(T+H-B)/2,y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'Fine-tune rounds');
+  ids.forEach((i,j)=>{const cx=L+j*bw+bw/2;[1,2].forEach(p=>{const e=E.find(q=>q.case===i&&q.pass_===p);const v=e?e.rounds:0;const xx=cx+(p===1?-bw*0.2:bw*0.02)-0;
+      const r=sv('rect',{x:cx+(p===1?-bw*0.36:bw*0.02),y:y(v),width:bw*0.34,height:Math.max(0,H-B-y(v)),rx:3,fill:p===1?'var(--s4)':'var(--s3)'});s.append(r);
+      const hit=sv('rect',{x:cx+(p===1?-bw*0.36:bw*0.02),y:T,width:bw*0.34,height:H-B-T,fill:'transparent',tabindex:0});s.append(hit);
+      const show=()=>{const e1=E.find(q=>q.case===i);tip.hidden=false;tip.innerHTML=`<div class="t">Case ${i} · ${e1.split}</div><div class="row"><span>T₀</span><span>${e1.T0.toFixed(0)} K</span></div><div class="row"><span>Pass ${p} rounds</span><span>${v}</span></div>`;const bb=box.getBoundingClientRect(),rb=hit.getBoundingClientRect();let lx=rb.right-bb.left+6;if(lx+200>bb.width)lx=rb.left-bb.left-206;tip.style.left=Math.max(4,lx)+'px';tip.style.top=(rb.top-bb.top+40)+'px'};
+      hit.addEventListener('mouseenter',show);hit.addEventListener('focus',show);hit.addEventListener('mouseleave',()=>tip.hidden=true);hit.addEventListener('blur',()=>tip.hidden=true)});
+    const e1=E.find(q=>q.case===i);txt(s,{x:cx,y:H-B+16,'text-anchor':'middle',style:e1.split==='val'?'font-weight:600;fill:var(--ink)':''},`#${i}`);txt(s,{x:cx,y:H-B+30,'text-anchor':'middle',style:'font-size:10px'},`${e1.T0.toFixed(0)} K`)});
+  s.append(sv('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,class:'base'}));box.prepend(s)})();
+
+/* urc table */
+(function(){const tb=document.querySelector('#urc tbody');Object.entries(CO.urc_train).forEach(([r,u])=>{const k='urc_'+r;const tr=el('tr',k===BU?{class:'sel'}:{});
+  tr.innerHTML=`<td class="name">1:${r.slice(1)}</td><td>${u.windows.toLocaleString()}</td><td>${u.val_unrolled_parent.toExponential(2)} → ${u.val_unrolled_best.toExponential(2)}</td><td>${u.val_one_parent.toExponential(2)} → ${u.val_one_best.toExponential(2)}</td><td>${u.epochs.join(', ')}</td><td>${(u.seconds/3600).toFixed(1)} GPU-h</td>`;tb.append(tr)})})();
+/* ewc table */
+(function(){const tb=document.querySelector('#ewc tbody');const tr0=el('tr');const e0=CO.ewc_train.c0;
+  tr0.innerHTML=`<td class="name">pretrained (strategy 5)</td><td>${e0.new0.toExponential(2)}</td><td>${e0.old0.toExponential(2)}</td><td>–</td><td>${K(S.s5.test.T_reg_med)}</td><td>${K(S.s5.test.T_slow_mean)}</td>`;tb.append(tr0);
+  Object.entries(CO.ewc_train).forEach(([c,r])=>{const k='ewc_'+c;const tr=el('tr',k===BEST?{class:'sel'}:{});tr.innerHTML=`<td class="name">${c.slice(1)}</td><td>${r.new.toExponential(2)}</td><td>${r.old.toExponential(2)}</td><td>${r.epochs.join(', ')}</td><td>${K(S[k].test.T_reg_med)}</td><td>${K(S[k].test.T_slow_mean)}</td>`;tb.append(tr)})})();
+
+/* cost */
+(function(){const tb=document.querySelector('#cost tbody');const ew=Object.values(CO.ewc_train).reduce((a,r)=>a+r.seconds,0);
+  [['Strategy 5','0','none (pretrained)','–'],
+   ['Gated hybrid',`${CO.hybrid_ode_steps.toLocaleString()} (integration)`,'none','during every rollout'],
+   ['Online per case',`${CO.online_ode_label_steps.toLocaleString()} (labels, ${CO.online_rounds_total} rounds)`,`${(CO.online_finetune_cpu_s/60).toFixed(0)} CPU-min of fine-tuning`,'during every rollout, per trajectory'],
+   ['Gym (2 passes)',`${CO.gym_ode_label_steps.toLocaleString()} (labels, ${CO.gym_rounds[1]+CO.gym_rounds[2]} rounds)`,`${(CO.gym_seconds/60).toFixed(0)} GPU-min including rollouts`,'once, before deployment'],
+   ['EWC consolidation','reuses the gym labels',`${(ew/60).toFixed(0)} GPU-min for 25 models`,'once, before deployment'],
+   ['UR10 consolidation + replay','1 518 000 (11-step windows from the gym states)',`${((CO.urc_train.r1.seconds+CO.urc_train.r3.seconds)/3600).toFixed(1)} GPU-h for both ratios × 5 seeds`,'once, before deployment']]
+   .forEach(r=>tb.append(el('tr',{},r.map((v,j)=>`<td${j?' style="font-family:var(--body);font-size:.85rem"':' class="name"'}>${v}</td>`).join(''))));
+  tb.closest('section').append(el('p',{class:'note'},'For this 9-species mechanism, Cantera integrates all 36 cases for 20 ms in 0.83 s, so none of these methods saves time here. Costs are listed to compare how much ODE work each one needs.'))})();
+})();
+</script>

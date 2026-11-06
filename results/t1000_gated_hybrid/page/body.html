@@ -1,0 +1,205 @@
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.82rem;color:var(--ink-2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+.legend i.dash{border-top-style:dashed}
+.legend i.dot{width:10px;height:10px;border-radius:50%;border:0}
+.legend i.band{width:18px;height:10px;border:0;border-radius:2px}
+.cases button.slow{border-color:var(--bad);color:var(--bad)}
+.cases button.slow[aria-pressed="true"]{background:var(--bad);color:var(--bg);border-color:var(--bad)}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:10px}
+.flow div{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;font-size:.88rem;color:var(--ink-2)}
+.flow b{display:block;font-family:var(--display);font-size:1rem;color:var(--ink);margin-bottom:2px}
+.next{display:flex;flex-direction:column;gap:10px;margin:0;padding-left:1.2rem;color:var(--ink-2);font-size:.93rem;max-width:80ch}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">H₂/air 0-D ignition · strategy 5 network + Cantera · prototype</div>
+  <h1>Disagreement-Gated Hybrid</h1>
+  <p class="lede">The strategy-5 network runs every step unless the five-member committee disagrees too much before ignition. Then a stiff ODE solver takes over until the temperature has risen 50 K, and the network finishes the run. The same 36 cases and 5 seeds as before, 20 ms each.</p>
+  <div class="facts">
+    <div><b>36 × 5</b><span>cases × seeds (180 rollouts)</span></div>
+    <div><b>R &gt; 0.3</b><span>gate, set from validation</span></div>
+    <div><b>T₀ + 50 K</b><span>handover back to the network</span></div>
+    <div><b>best-val</b><span>weights for every member</span></div>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><h2>How the gate works</h2></div>
+  <div class="flow">
+    <div><b>1 · Query the committee</b>At every step, all five members predict the next state from the current state, each with Wang projection and enthalpy temperature. The run's own seed is one of the five.</div>
+    <div><b>2 · Measure disagreement</b>R = ‖std of the five steps‖ / (‖mean step‖ + 10⁻³), on T and BCT(Y) in training-σ units, smoothed by a 20 µs rolling median.</div>
+    <div><b>3 · Gate</b>While T &lt; T₀ + 50 K, if R &gt; 0.3 the run switches to Cantera and stays there. The solver uses the reference mechanism, reactor and tolerances, advancing 2 µs per step from the current state.</div>
+    <div><b>4 · Hand back</b>Once T ≥ T₀ + 50 K, the run's own network does the fast runaway and the post-flame part. The gate cannot fire again after that.</div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Findings</h2></div>
+  <div class="findings" id="findings"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Summary</h2><p>Pooled over all 90 runs in the split (18 cases × 5 seeds). Strategy 5 is the gate-off run of the same code; its traces match the saved strategy-5 rollouts to 0.0001 K.</p></div>
+  <div class="controls">
+    <span class="ctl-label">Split</span><div class="seg" id="seg-split"><button data-v="test" aria-pressed="true">Test</button><button data-v="val" aria-pressed="false">Validation</button></div>
+    <span class="ctl-label">Horizon</span><div class="seg" id="seg-h"><button data-v="0.02" aria-pressed="true">20 ms</button><button data-v="0.01" aria-pressed="false">10 ms</button></div>
+  </div>
+  <div class="frame"><table id="summary"><thead><tr><th>Method</th><th>Physically valid</th><th>Ignition correct</th><th>τ₄₀₀ err. median</th><th>τ₄₀₀ err. mean</th><th>τ₄₀₀ err. max</th><th>T RMSE mean</th><th>T RMSE median case</th><th>Gated runs</th><th>Steps on ODE</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Per case: before and after</h2><p>Mean 20-ms temperature RMSE over the 5 seeds, for every case sorted by reference ignition delay. Only the five red cases are gated; in the other 31 the two dots are identical and overlap.</p></div>
+  <div class="legend"><span><i class="dot" style="background:var(--s2)"></i>Strategy 5</span><span><i class="dot" style="background:var(--s1)"></i>Gated hybrid (+50 K)</span></div>
+  <div class="chartbox" id="dumb"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Temperature in the gated cases</h2><p>The shaded band shows where Cantera was in charge, from the earliest gate-on to the latest handover across the five seeds. Use the linear view around ignition to compare τ₄₀₀ directly.</p></div>
+  <div class="cases" id="cases"></div>
+  <div class="controls">
+    <span class="ctl-label">Time axis</span><div class="seg" id="seg-ax"><button data-v="lin" aria-pressed="true">Linear, 0.5–1.5 τ_ref</button><button data-v="log" aria-pressed="false">Log, full 20 ms</button></div>
+    <div class="toggles"><label><input type="checkbox" id="show-off" checked>Show strategy 5 (gate off)</label></div>
+  </div>
+  <div class="case-info" id="case-info"></div>
+  <div class="legend" id="ts-legend"></div>
+  <div class="chartbox" id="ts"></div>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Per-case table</h2></div>
+  <div class="frame"><table id="tbl"><thead><tr><th>Case</th><th>Split</th><th>T₀ (K)</th><th>τ_ref (ms)</th><th>Gated</th><th>Gate on (µs)</th><th>Handover (ms)</th><th>ODE steps</th><th>τ err. off → on</th><th>T RMSE off → on</th><th>Correct off → on</th></tr></thead><tbody></tbody></table></div>
+  <p class="note">Gate-on, handover and ODE steps are medians over the gated seeds. τ error is the median over seeds that ignite; "–" means none of them ignited.</p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Cost: what this prototype does and does not show</h2></div>
+  <div class="findings" id="cost"></div>
+  <p class="note" id="cost-note"></p>
+</section>
+
+<section>
+  <div class="sec-head"><h2>Caveats and next steps</h2></div>
+  <ul class="next">
+    <li><b>Small evaluation.</b> Only five slow cases exist (3 test, 2 validation), all in one regime, and the threshold was set on two of them. More slow initial conditions near 1000 K are needed to put a real false-negative rate on the gate.</li>
+    <li><b>The handover point barely matters.</b> Handing back at +50 K or +200 K gives the same τ₄₀₀ and 3.49 K vs 3.42 K mean RMSE, so once runaway has started the network handles it well.</li>
+    <li><b>Some residual error remains in the gated cases (8–17 K RMSE).</b> It comes from the network's fast runaway after handover; τ₄₀₀ errors there are 0.1–1.0%.</li>
+    <li><b>Next steps.</b> First, keep one solver alive while a run is gated, which should take the ODE cost from ms to µs per step. Second, run the committee only before ignition. Third, test the same gate in a setting where the ODE is expensive: a larger mechanism, or many cells in CFD.</li>
+  </ul>
+</section>
+
+<footer>
+  <div>Code: <code>kinetics/t1000_gated_hybrid.py</code>, <code>kinetics/t1000_ode_cost.py</code>, <code>kinetics/t1000_gated_report.py</code>, <code>t1000_gated_hybrid.sbatch</code> (besq job 132811). Results: <code>results/t1000_gated_hybrid/{gate_off, gate0.3_handover50K, gate0.3_handover200K}</code>.</div>
+  <div>Models: <code>results/t1000_ur10_phys_best/g0.1/seed{11,22,33,44,55}</code> (best-validation). Reference: <code>results/t1000_reference/reference20ms.npz</code>; τ₄₀₀ errors use the refined reference.</div>
+</footer>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+const D=JSON.parse(document.getElementById('data').textContent);const M=D.meta;
+const NS='http://www.w3.org/2000/svg',SLOW=[78,69,52,7,9],SEEDS=[11,22,33,44,55];
+const el=(t,a={},h='')=>{const e=document.createElement(t);for(const k in a)e.setAttribute(k,a[k]);if(h)e.innerHTML=h;return e};
+const sv=(t,a={})=>{const e=document.createElementNS(NS,t);let st='';for(const k in a){const v=String(a[k]);if((k==='fill'||k==='stroke')&&v.startsWith('var('))st+=`${k}:${v};`;else e.setAttribute(k,v)}if(st)e.setAttribute('style',st+(e.getAttribute('style')||''));return e};
+const txt=(s,a,t)=>{const e=sv('text',a);e.textContent=t;s.append(e);return e};
+const pct=(x,d=1)=>x==null||isNaN(x)?'–':(x*100).toFixed(d)+'%';
+const K=x=>x==null||isNaN(x)?'–':(x>=100?x.toFixed(0):x>=10?x.toFixed(1):x.toFixed(2))+' K';
+const NAME={gate_off:'Strategy 5 (gate off)','gate0.3_handover50K':'Gated hybrid, handover +50 K','gate0.3_handover200K':'Gated hybrid, handover +200 K'};
+const row=(v,sp,h)=>D.summary.find(r=>r.variant===v&&r.split===sp&&Math.abs(r.horizon-h)<1e-9);
+const caseById=Object.fromEntries(D.cases.map(c=>[c.id,c]));
+
+/* findings */
+const off=row('gate_off','test',.02),on=row('gate0.3_handover50K','test',.02),offv=row('gate_off','val',.02),onv=row('gate0.3_handover50K','val',.02);
+const g=SLOW.map(i=>caseById[i]);
+const F=[
+ {k:`${pct(off.classification)} → ${pct(on.classification,0)}`,h:'Every rollout now classifies ignition correctly',p:`On the test split, ignition classification rises from ${pct(off.classification)} to 100%; on validation, from ${pct(offv.classification)} to 100%. Cases 7 and 9, which no seed ignited before, now ignite in all 5 seeds.`},
+ {k:`${K(off.T_mean)} → ${K(on.T_mean)}`,h:'Mean temperature RMSE drops about 25×',p:`Test mean 20-ms T RMSE falls from ${K(off.T_mean)} to ${K(on.T_mean)} (validation: ${K(offv.T_mean)} → ${K(onv.T_mean)}). The worst τ₄₀₀ error falls from ${pct(off.tau_max,0)} to ${pct(on.tau_max)}, and the remaining worst case is an ungated, fast case.`},
+ {k:`${pct(on.ode_fraction)}`,h:'Only a small share of steps go to the ODE solver',p:`Over 20 ms, ${pct(on.ode_fraction)} of test steps (${pct(onv.ode_fraction)} on validation) are integrated by Cantera, all inside the five slow cases. The other 31 cases never trigger the gate, and their results are bit-for-bit unchanged.`},
+ {k:`${Math.min(...g.map(c=>c.gate_on_us)).toFixed(0)}–${Math.max(...g.map(c=>c.gate_on_us)).toFixed(0)} µs`,h:'The gate fires almost immediately',p:`Median gate-on time per slow case is ${g.map(c=>`#${c.id} ${c.gate_on_us.toFixed(0)} µs`).join(', ')}. That is long before any visible deviation, so only 9–17 network steps have to be absorbed before the solver takes over.`},
+];
+const fd=document.getElementById('findings');F.forEach(f=>fd.append(el('div',{class:'finding'},`<div class="k">${f.k}</div><h3>${f.h}</h3><p>${f.p}</p>`)));
+
+/* summary table */
+let split='test',hor=.02;
+function seg(id,cb){const s=document.getElementById(id);s.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;s.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));cb(b.dataset.v)})}
+seg('seg-split',v=>{split=v;renderSummary()});seg('seg-h',v=>{hor=+v;renderSummary()});
+function renderSummary(){const tb=document.querySelector('#summary tbody');tb.innerHTML='';
+  Object.keys(NAME).forEach(v=>{const r=row(v,split,hor);const tr=el('tr',v==='gate0.3_handover50K'?{class:'best'}:{});
+    tr.innerHTML=`<td class="name">${NAME[v]}</td><td>${r.physical}/90</td><td>${pct(r.classification)}</td><td>${pct(r.tau_median,2)}</td><td>${pct(r.tau_mean,2)}</td><td>${pct(r.tau_max,1)}</td><td>${K(r.T_mean)}</td><td>${K(r.T_median)}</td><td>${r.gated}/90</td><td>${pct(r.ode_fraction,2)}</td>`;tb.append(tr)})}
+renderSummary();
+
+/* dumbbell */
+(function(){const box=document.getElementById('dumb');box.append(el('div',{class:'tip',hidden:''}));const tip=box.querySelector('.tip');
+  const cs=[...D.cases].sort((a,b)=>a.tau_ref-b.tau_ref);const W=860,H=330,L=60,R=16,T=12,B=60;const lo=0.05,hi=3000;
+  const x=j=>L+(j+.5)*(W-L-R)/cs.length,y=v=>T+(H-T-B)*(1-(Math.log10(Math.max(lo,Math.min(hi,v)))-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo)));
+  const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Mean temperature RMSE per case, strategy 5 versus gated hybrid'});
+  [0.1,1,10,100,1000].forEach(v=>{s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},v)});
+  txt(s,{x:-(T+H-B)/2,y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'Mean T RMSE, 20 ms (K, log)');
+  txt(s,{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'axis-title'},'Case, sorted by reference τ₄₀₀ (short → long)');
+  cs.forEach((c,j)=>{const cx=x(j),slow=c.gated>0;
+    const lb=txt(s,{x:cx,y:H-B+14,'text-anchor':'end',transform:`rotate(-60 ${cx} ${H-B+14})`,style:`font-size:10px;${slow?'fill:var(--bad);font-weight:600':''}`},`#${c.id}`);
+    if(slow){s.append(sv('line',{x1:cx,x2:cx,y1:y(c.T_off),y2:y(c.T_on),stroke:'var(--ink-3)','stroke-width':1.5}))}
+    s.append(sv('circle',{cx,cy:y(c.T_off),r:5,fill:'var(--s2)',stroke:'var(--panel)','stroke-width':2}));
+    s.append(sv('circle',{cx,cy:y(c.T_on),r:5,fill:'var(--s1)',stroke:'var(--panel)','stroke-width':2}));
+    const hit=sv('rect',{x:cx-(W-L-R)/cs.length/2,y:T,width:(W-L-R)/cs.length,height:H-T-B,fill:'transparent',tabindex:0});s.append(hit);
+    const show=()=>{tip.hidden=false;tip.innerHTML=`<div class="t">Case ${c.id} · ${c.split}</div><div class="row"><span>τ_ref</span><span>${(c.tau_ref*1e3).toPrecision(2)} ms</span></div><div class="row"><span>T RMSE off → on</span><span>${K(c.T_off)} → ${K(c.T_on)}</span></div><div class="row"><span>τ err off → on</span><span>${pct(c.tau_off)} → ${pct(c.tau_on)}</span></div><div class="row"><span>Gated seeds</span><span>${c.gated}/5</span></div>`;
+      const bb=box.getBoundingClientRect(),hb=hit.getBoundingClientRect();let lx=hb.right-bb.left+6;if(lx+230>bb.width)lx=hb.left-bb.left-236;tip.style.left=Math.max(4,lx)+'px';tip.style.top=(y(c.T_off)/H*bb.height-20)+'px'};
+    hit.addEventListener('mouseenter',show);hit.addEventListener('focus',show);hit.addEventListener('mouseleave',()=>tip.hidden=true);hit.addEventListener('blur',()=>tip.hidden=true)});
+  box.prepend(s)})();
+
+/* trajectories */
+(function(){const box=document.getElementById('ts');box.append(el('div',{class:'tip',hidden:''}));const tip=box.querySelector('.tip');
+  let cur=69,ax='lin';const chips=document.getElementById('cases');
+  SLOW.forEach(i=>{const b=el('button',{'aria-pressed':i===cur,class:'slow'},`#${i}`);b.onclick=()=>{cur=i;chips.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',q===b));draw()};chips.append(b)});
+  seg('seg-ax',v=>{ax=v;draw()});document.getElementById('show-off').onchange=draw;
+  document.getElementById('ts-legend').innerHTML=SEEDS.map((s,k)=>`<span><i style="border-color:var(--s${k+1})"></i>seed ${s} hybrid</span>`).join('')+`<span><i class="dash" style="border-color:var(--ref)"></i>Cantera reference</span><span><i style="border-color:var(--ink-3);opacity:.5"></i>strategy 5 (gate off)</span><span><i class="band" style="background:var(--warn-bg);outline:1px solid var(--warn)"></i>ODE in charge</span>`;
+  function draw(){const S=D.series[String(cur)],c=caseById[cur],tau=c.tau_ref,dt=2e-6;box.querySelector('svg')?.remove();
+    const W=860,H=400,L=64,R=16,T=12,B=44;const t=S.idx.map(i=>i*dt);
+    let lo,hi,x;if(ax==='lin'){lo=.5*tau;hi=1.5*tau;x=v=>L+(v-lo)/(hi-lo)*(W-L-R)}else{lo=2e-6;hi=2e-2;x=v=>L+(Math.log10(v)-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo))*(W-L-R)}
+    const keep=t.map(v=>v>=lo&&v<=hi);
+    const all=[...S.Tref,...S.on.flat(),...(document.getElementById('show-off').checked?S.off.flat():[])].filter((v,j)=>v!=null);
+    const ylo=Math.floor((c.T0-50)/100)*100,yhi=Math.ceil((Math.max(...S.Tref)+80)/100)*100;const y=v=>T+(H-T-B)*(1-(Math.max(ylo,Math.min(yhi,v))-ylo)/(yhi-ylo));
+    const s=sv('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`Temperature for case ${cur}: hybrid, strategy 5 and reference`});
+    const odeS=Math.min(...S.ode.filter(Boolean).map(o=>o[0]))*dt,odeE=Math.max(...S.ode.filter(Boolean).map(o=>o[1]))*dt;
+    const bx0=x(Math.max(lo,odeS)),bx1=x(Math.min(hi,odeE));if(bx1>bx0)s.append(sv('rect',{x:bx0,y:T,width:bx1-bx0,height:H-T-B,fill:'var(--warn-bg)','fill-opacity':.8}));
+    const step=yhi-ylo>1200?500:250;for(let v=Math.ceil(ylo/step)*step;v<=yhi;v+=step){s.append(sv('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),class:'grid'}));txt(s,{x:L-8,y:y(v)+4,'text-anchor':'end'},v)}
+    let ticks;if(ax==='lin'){const sp=(hi-lo)/5;ticks=[0,1,2,3,4,5].map(k=>lo+k*sp)}else ticks=[2e-6,1e-5,1e-4,1e-3,1e-2];
+    ticks.forEach(v=>{s.append(sv('line',{x1:x(v),x2:x(v),y1:T,y2:H-B,class:'grid'}));txt(s,{x:x(v),y:H-B+16,'text-anchor':'middle'},v<1e-3?`${(v*1e6).toFixed(0)} µs`:`${(v*1e3).toFixed(ax==='lin'&&v<1e-2?3:0).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,'')} ms`)});
+    s.append(sv('line',{x1:L,x2:W-R,y1:H-B,y2:H-B,class:'base'}));
+    txt(s,{x:(L+W-R)/2,y:H-6,'text-anchor':'middle',class:'axis-title'},ax==='lin'?'Time (linear, 0.5–1.5 τ_ref)':'Time (log)');
+    txt(s,{x:-(T+H-B)/2,y:14,'text-anchor':'middle',class:'axis-title',transform:'rotate(-90)'},'T (K)');
+    const path=v=>{let d='',pen=false;v.forEach((q,j)=>{if(!keep[j]||q==null){pen=false;return}d+=`${pen?'L':'M'}${x(t[j]).toFixed(1)},${y(q).toFixed(1)}`;pen=true});return d};
+    if(document.getElementById('show-off').checked)S.off.forEach((v,k)=>s.append(sv('path',{d:path(v),fill:'none',stroke:`var(--s${k+1})`,'stroke-width':1.5,'stroke-opacity':.35,'stroke-dasharray':'1 3'})));
+    S.on.forEach((v,k)=>s.append(sv('path',{d:path(v),fill:'none',stroke:`var(--s${k+1})`,'stroke-width':2})));
+    s.append(sv('path',{d:path(S.Tref),fill:'none',stroke:'var(--ref)','stroke-width':2,'stroke-dasharray':'6 4'}));
+    if(tau>=lo&&tau<=hi){s.append(sv('line',{x1:x(tau),x2:x(tau),y1:T,y2:H-B,stroke:'var(--ink-3)','stroke-width':1}));txt(s,{x:x(tau)+4,y:T+12,style:'font-family:var(--body);fill:var(--ink-3)'},'τ_ref')}
+    const ch=sv('line',{y1:T,y2:H-B,stroke:'var(--ink-2)','stroke-width':1,visibility:'hidden'});s.append(ch);
+    const hit=sv('rect',{x:L,y:T,width:W-R-L,height:H-T-B,fill:'transparent'});s.append(hit);
+    hit.addEventListener('mousemove',ev=>{const pt=s.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const p=pt.matrixTransform(s.getScreenCTM().inverse());
+      let j=-1,bd=1e9;t.forEach((q,i)=>{if(!keep[i])return;const d_=Math.abs(x(q)-p.x);if(d_<bd){bd=d_;j=i}});if(j<0)return;
+      ch.setAttribute('x1',x(t[j]));ch.setAttribute('x2',x(t[j]));ch.setAttribute('visibility','visible');
+      const tl=t[j]<1e-3?`${(t[j]*1e6).toFixed(0)} µs`:`${(t[j]*1e3).toFixed(3)} ms`;
+      tip.hidden=false;tip.innerHTML=`<div class="t">Case ${cur} · t = ${tl}</div><div class="row"><span>Reference</span><span>${K(S.Tref[j])}</span></div>`+SEEDS.map((sd,k)=>{const o=S.ode[k];const onode=o&&S.idx[j]>=o[0]&&S.idx[j]<=o[1];return `<div class="row"><span><i class="sw" style="background:var(--s${k+1});width:10px;height:10px"></i>seed ${sd}${onode?' · ODE':''}</span><span>${K(S.on[k][j])} <span class="muted">(off ${K(S.off[k][j])})</span></span></div>`}).join('');
+      const bb=box.getBoundingClientRect();let lx=ev.clientX-bb.left+16;if(lx+300>bb.width)lx=ev.clientX-bb.left-310;tip.style.left=Math.max(4,lx)+'px';tip.style.top=Math.max(4,ev.clientY-bb.top-40)+'px'});
+    hit.addEventListener('mouseleave',()=>{tip.hidden=true;ch.setAttribute('visibility','hidden')});
+    box.prepend(s);
+    document.getElementById('case-info').innerHTML=`<b>Case ${cur}</b> (${c.split}) · T₀ = ${c.T0.toFixed(0)} K, τ_ref = ${(tau*1e3).toPrecision(3)} ms · gate on at ${c.gate_on_us.toFixed(0)} µs, handover at ${c.gate_off_ms.toFixed(3)} ms (medians) · τ₄₀₀ error by seed, off → on: ${c.seeds.map(q=>`${q.tau_off==null?'missed':pct(q.tau_off)} → ${pct(q.tau_on)}`).join(', ')}`;
+  }
+  draw()})();
+
+/* table */
+(function(){const tb=document.querySelector('#tbl tbody');
+  [...D.cases].sort((a,b)=>a.tau_ref-b.tau_ref).forEach(c=>{const gd=c.gated>0;const tr=el('tr');
+    tr.innerHTML=`<td${gd?' class="bad"':''}>#${c.id}</td><td>${c.split}</td><td>${c.T0.toFixed(0)}</td><td>${(c.tau_ref*1e3).toPrecision(2)}</td><td>${c.gated}/5</td><td>${gd?c.gate_on_us.toFixed(0):'–'}</td><td>${gd?c.gate_off_ms.toFixed(3):'–'}</td><td>${gd?c.ode_steps.toFixed(0):'0'}</td><td>${pct(c.tau_off)} → ${pct(c.tau_on)}</td><td>${K(c.T_off)} → ${K(c.T_on)}</td><td>${c.ok_off}/5 → ${c.ok_on}/5</td>`;
+    if(!gd)tr.style.opacity=.78;tb.append(tr)})})();
+
+/* cost */
+(function(){const C=[
+ {k:`${M.ode_continuous_total_s.toFixed(2)} s`,h:'Pure Cantera is cheap for this mechanism',p:`Integrating all 36 cases for 20 ms with one live ReactorNet each (10 000 outputs per case) takes ${M.ode_continuous_total_s.toFixed(2)} s, about ${M.ode_continuous_us_per_step.toFixed(1)} µs per output step. With 9 species, the 0-D ODE is not a bottleneck, so this setting cannot show a speed-up.`},
+ {k:`${M.ode_ms_per_step.toFixed(2)} ms`,h:'The prototype’s ODE step is deliberately naive',p:`Each gated step builds a new reactor from the current state, which costs ${M.ode_ms_per_step.toFixed(2)} ms per step, roughly 600× more than a continuous integration. A production version would keep one reactor alive while the gate is on.`},
+ {k:`${(M.net.gate_off).toFixed(0)} s`,h:'The network side is Python-loop bound',p:`The batched rollout of all 180 runs spends ${M.net.gate_off.toFixed(0)} s in network and correction calls. That includes querying all 5 members every step, which is only needed before ignition. The transferable cost figure is the share of steps that need the ODE: about 1.7% over 20 ms here.`}];
+ const c=document.getElementById('cost');C.forEach(f=>c.append(el('div',{class:'finding'},`<div class="k">${f.k}</div><h3>${f.h}</h3><p>${f.p}</p>`)));
+ document.getElementById('cost-note').textContent='Timings are from one besq node with 8 threads and no GPU (job 132811). The gate only pays off where an ODE step is much more expensive than a network step: larger mechanisms, or many cells in CFD.'})();
+})();
+</script>

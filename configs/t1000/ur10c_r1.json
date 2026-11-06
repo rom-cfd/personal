@@ -1,0 +1,41 @@
+{
+  "method": "UR=10 physics-in-loop consolidation of the 0-D gym windows with 1:1 replay of the original UR10 windows; parent = strategy 5 best-validation members",
+  "parent_root": "results/t1000_ur10_phys_best/g0.1",
+  "data": "results/t1000_gymur_r1",
+  "output": "results/t1000_ur10c_r1",
+  "validation_source": "results/t1000_long10ms_data/trajectories.npz",
+  "validation_window_stride": 10,
+  "gamma": 0.1,
+  "hidden_layers": [
+    1600,
+    800,
+    400
+  ],
+  "activation": "gelu",
+  "unroll": 10,
+  "loss": "Liu Eq. 5: sum over steps 0..10 of masked MAE on standardized increments",
+  "epochs": 30,
+  "batch_size": 512,
+  "learning_rate": 1e-05,
+  "lr_step": {
+    "every_epochs": 15,
+    "factor": 0.4
+  },
+  "gradient_clip": 5.0,
+  "snapshot_epochs": [
+    10,
+    20,
+    30
+  ],
+  "checkpoint_every_updates": 2000,
+  "require_gpu": true,
+  "seeds": [
+    11,
+    22,
+    33,
+    44,
+    55
+  ],
+  "pin_pressure": true,
+  "physics_in_loop": true
+}

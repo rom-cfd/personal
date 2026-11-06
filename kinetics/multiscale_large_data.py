@@ -38,7 +38,8 @@ def sha(path):
 
 
 def atomic_json(path,value):
-    path=Path(path);tmp=path.with_suffix(path.suffix+'.tmp')
+    # Per-process temporary name: parallel lanes may write the same shared file (e.g. a root config.json).
+    path=Path(path);tmp=path.with_name(f'{path.name}.{os.getpid()}.tmp')
     tmp.write_text(json.dumps(value,indent=2));os.replace(tmp,path)
 
 

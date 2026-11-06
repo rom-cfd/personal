@@ -1,0 +1,22 @@
+{
+  "method": "Liu et al. 2026 unrolling fine-tune (Liu-style feedback: denormalize + add; no physics in the loop)",
+  "parent_root": "results/zhang_5p3m_gelu_ens/g0.1",
+  "data": "results/zhang_5p3m_unroll11",
+  "output": "results/zhang_5p3m_unroll10",
+  "validation_source": "results/long10ms_data/trajectories.npz",
+  "validation_window_stride": 10,
+  "gamma": 0.1,
+  "hidden_layers": [1600, 800, 400],
+  "activation": "gelu",
+  "unroll": 10,
+  "loss": "Liu Eq. 5: sum over steps 0..10 of masked MAE on standardized increments",
+  "epochs": 100,
+  "batch_size": 512,
+  "learning_rate": 0.0001,
+  "lr_step": {"every_epochs": 30, "factor": 0.4},
+  "gradient_clip": 5.0,
+  "snapshot_epochs": [10, 25, 50, 75, 100],
+  "checkpoint_every_updates": 2000,
+  "require_gpu": true,
+  "seeds": [11, 22, 33, 44, 55]
+}

@@ -10,6 +10,13 @@ from .data import samples
 from .metrics import evaluate
 from .long_committee_study import horizon_summary
 from .enthalpy_temperature import EnthalpyTemperature,load_predictor
+from .zhang_wang import WangHardCorrection
+
+
+def wrap(p,mode):
+    if mode=='enthalpy':return EnthalpyTemperature(p)
+    if mode in ('wang','wang_noguard'):return WangHardCorrection(p,guard=mode=='wang')
+    return p
 
 
 def main():
@@ -19,11 +26,11 @@ def main():
     parser.add_argument('--source',type=Path,default=Path('results/long10ms_data/trajectories.npz'))
     parser.add_argument('--reference',type=Path,default=Path('results/zhang_multiscale_raw/reference20ms.npz'))
     parser.add_argument('--output',type=Path);parser.add_argument('--preflight',action='store_true')
-    parser.add_argument('--temperature-mode',choices=['raw','enthalpy'],default='raw')
+    parser.add_argument('--temperature-mode',choices=['raw','enthalpy','wang','wang_noguard'],default='raw')
     parser.add_argument('--expected-epochs',type=int,default=10)
     parser.add_argument('--model-version',choices=['final','best'],default='final')
     args=parser.parse_args();seeds=sorted(args.seeds);root=args.root
-    out=args.output or root/(('evaluation_' if args.temperature_mode=='raw' else 'evaluation_enthalpy_')+
+    out=args.output or root/(('evaluation_' if args.temperature_mode=='raw' else f'evaluation_{args.temperature_mode}_')+
         ('best_' if args.model_version=='best' else '')+'seeds'+'_'.join(map(str,seeds)))
     if out.exists():raise FileExistsError('Use a new evaluation output')
     cfg=json.loads((root/'config.json').read_text());assert cfg['physics'] is False
@@ -62,15 +69,17 @@ def main():
         metric=dict(temperature_scale=max(float(preprocessing['input_scale'][0]),100.),
             species_scale=[max(float(np.quantile(raw_x[:,j],.95)),1e-8) for j in range(1,10)],
             fit_split='train',fit_examples=len(raw_x),derivation='temperature std and species 95th percentiles, training only')
-    atomic_json(out/'protocol.json',dict(physics=args.temperature_mode=='enthalpy',seeds=seeds,gamma=gamma,preflight=args.preflight,
+    wang=args.temperature_mode.startswith('wang')
+    atomic_json(out/'protocol.json',dict(physics=args.temperature_mode!='raw',seeds=seeds,gamma=gamma,preflight=args.preflight,
         epochs=cfg['epochs'],training_pairs=preprocessing['examples'],
         validation_selection='all 90000 one-step pairs; original physical-unit selection_score; ties ascending seed',
         test_or_rollout_for_selection=False,horizons=[.01,.02],raw_pressure_self_fed=True,raw_temperature_self_fed=args.temperature_mode=='raw',
-        decoder_clipping=False,element_projection=False,enthalpy_closure=args.temperature_mode=='enthalpy',mass_renormalization=False,
-        temperature_mode=args.temperature_mode,thermodynamic_composition='Cantera-normalized for properties only; self-fed ANN Y unchanged',
+        decoder_clipping=args.temperature_mode=='wang',element_projection='Wang 2025 Eqs. 5-9, negative candidates rejected' if wang else False,
+        enthalpy_closure=args.temperature_mode!='raw',mass_renormalization=False,
+        temperature_mode=args.temperature_mode,thermodynamic_composition='Cantera-normalized for properties only; '+('self-fed Y is the element-corrected Y' if wang else 'self-fed ANN Y unchanged'),
         medoid_metric=metric,reference_sha256=sha(args.reference),source_sha256=sha(args.source)))
     began=time.perf_counter();p=ZhangCommittee(paths,seeds,metric,'mean')
-    if args.temperature_mode=='enthalpy':p=EnthalpyTemperature(p)
+    p=wrap(p,args.temperature_mode)
     vx,vy,_=samples(data,'val');predictions=np.empty((len(seeds),len(vx),10))
     for i in range(0,len(vx),512):predictions[:,i:i+512]=p.candidates(vx[i:i+512])[:,:,:10]
     ranking=[]
@@ -89,7 +98,7 @@ def main():
     rows=[];summaries=[];one=[];checks=[];timings=[]
     for name,pp,ss,rule in definitions:
         p=ZhangCommittee(pp,ss,metric,rule)
-        if args.temperature_mode=='enthalpy':p=EnthalpyTemperature(p)
+        p=wrap(p,args.temperature_mode)
         p.save(out/'methods'/f'{name}.json')
         for split in ('val','test'):
             x,y,ids=samples(data,split);prediction=np.empty_like(y)
@@ -118,7 +127,7 @@ def main():
             checks.append(dict(method=name,split=split,reload_match=True,first_step_match=True))
             for filename,values in [('summary',summaries),('trajectories',rows),('one_step',one),('checks',checks),('timing',timings)]:
                 pd.DataFrame(values).to_csv(out/f'{filename}.csv',index=False)
-    atomic_json(out/'manifest.json',dict(status='completed',preflight=args.preflight,physics=args.temperature_mode=='enthalpy',
+    atomic_json(out/'manifest.json',dict(status='completed',preflight=args.preflight,physics=args.temperature_mode!='raw',
         temperature_mode=args.temperature_mode,
         model_version=args.model_version,
         models=len(seeds),epochs=cfg['epochs'],training_examples=preprocessing['examples'],
