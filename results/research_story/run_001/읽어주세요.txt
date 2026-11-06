@@ -1,0 +1,41 @@
+수소 반응계 연구 발표 자료 — main → bw
+기준 날짜: 2026-11-06 (KST)
+근거 bw revision: ad8c537edc6f0084d07a052bf3ab0c3ec9ceb2e8
+main 경계: e89c656eeeac0e93bafb4322b9482c7dfec70168
+
+먼저 볼 파일
+1. slides/hydrogen_research_story.pdf — 발표용 31장 (본문23 + 부록8)
+2. slides/hydrogen_research_story.pptx — 글/도형 편집 가능, 발표자 노트 포함
+3. gallery/index.html — 브라우저에서 열면 발표용16그림과 원본1,283파일을 검색
+4. 발표자_설명노트.txt — 실험 이유 → 변경 → 관찰 → 다음 단계 설명
+5. experiment_registry.csv — 연구 단계별 예산, 재사용, 결과, 근거
+6. evaluation_overview.csv — raw/repaired 완주·정확도 수치
+7. all_figures_index.csv — 원본 그림/PDF/SVG의 고정 GitHub 경로
+8. slide_sources.csv — 페이지별 근거 경로
+9. sources/evidence.zip — 원문71개를 변경 없이 보관 (내부 경로=원래 저장소 경로)
+
+폰트와 편집
+PPTX는 NanumGothic과 수식 기호용 DejaVu Sans를 사용합니다. fonts/의 TTF를 설치하면 동일하게 표시됩니다.
+PDF에는 폰트를 포함했으므로 설치하지 않아도 됩니다. 그림은 PNG와 벡터 PDF를 제공합니다.
+전체 원본 checkpoint와 그림 수 GB를 ZIP에 복제하지 않았습니다. 원본은 고정 GitHub 링크에서 엽니다.
+갤러리의 검색과 발표용 그림은 오프라인에서 작동하며 원본 링크는 네트워크가 필요합니다.
+
+해석 원칙
+- main의 데이터/100-member ANN을 bw 신규 성과로 합산하지 않았습니다.
+- NRMSE = RMSE(Cantera, NN)/RMS(Cantera), %가 아닌 무차원 비율입니다.
+- 정확도 통과는 full10ms + T·8반응종 각각NRMSE≤.1인 사후 진단입니다. N2는 별도입니다.
+- 불완주에는 full10ms 점수가 없습니다. 완주, 정확도, 보존 오차는 별개입니다.
+- raw는 보정 없는 후보, repaired는 clipping/원소투영/엔탈피온도복원/유효후보평균을 포함합니다.
+- soft constraint는 학습 중 원소량 L1 벌점입니다. repaired나 반응률 직접 회귀와 다릅니다.
+- 과거 γ 선택은 repaired validation의 완주·온도 기준입니다. 화학종 전체 최적이라고 주장하지 않습니다.
+- 최신 temporal/ANN의 단기는150활성초이며, 초기 연구의10k 단기와 예산이 다릅니다.
+- 반복 baseline, 혼합 평가 조합과 재사용 모델을 새 학습 모델로 더하지 않았습니다.
+- 원본1,283파일은 독립 실험 수가 아니며 unrelated handoff_audit_20261102는 제외했습니다.
+- 제안한 다음 실험은 미실행입니다. 저장된 결과만 사용했으며 새 학습/평가는 하지 않았습니다.
+
+자료의 재생성
+원래 저장소/환경에서 collect_sources.py → prepare_facts.py → make_figures.py →
+build_presentation.py → build_catalogue.py → verify_package.py 순서입니다.
+prepare_facts.py는 원본 trace의 blob SHA를 대조합니다. 원본 데이터·모델은 수정하지 않습니다.
+build_presentation.py만 실행하면 동봉된 facts/그림에서 PPTX/PDF를 다시 만들 수 있습니다.
+PDF와 PPTX는 같은 배치 사양을 사용해 생성했고 PDF31페이지를 렌더링해 확인했습니다.

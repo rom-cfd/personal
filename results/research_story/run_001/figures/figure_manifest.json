@@ -1,0 +1,140 @@
+[
+  {
+    "name": "01_sampling",
+    "caption": "270,000개 후보에서 8,815개 시작점 선택. 입력을 줄여도 목표 시간 간격은 2 μs로 유지된다.",
+    "group": "데이터",
+    "sources": [
+      "results/long10ms_data/selected_inputs.csv",
+      "results/long10ms_data/sampling_summary.csv"
+    ]
+  },
+  {
+    "name": "02_main_committee",
+    "caption": "main의 물리 보정된 기준 비교: 모델 수 100개가 10개보다 온도 오차를 줄이지 못했다. raw 100-member 결과로 해석하면 안 된다.",
+    "group": "출발점",
+    "sources": [
+      "results/committee100_long10ms/summary.csv"
+    ]
+  },
+  {
+    "name": "03_lambda_short",
+    "caption": "각 칸은 18개 테스트 중 완주 수. λ별 raw 정확도 기준 통과는 전부 0개였다.",
+    "group": "Soft constraint",
+    "sources": [
+      "results/penalty_weight_sweep/run_001/reports/report_1793729103103453738/raw/per_IC_NRMSE.csv"
+    ]
+  },
+  {
+    "name": "04_soft10_long",
+    "caption": "raw 정확도 문턱 통과는 모든 칸에서 0개. 장기 열은 별도 전체 6시간 예산 실험이며 10k 열과 동일 업데이트 비교가 아니다.",
+    "group": "Soft constraint",
+    "sources": [
+      "results/element_soft_long/run_001/reports/report_1793705344040514166/raw/per_IC_NRMSE.csv"
+    ]
+  },
+  {
+    "name": "05_gamma_completion",
+    "caption": "γ에 따라 완주 수가 달라졌지만 완주가 정확도 통과를 뜻하지는 않는다. γ=.1 일부 기준점은 Adam 부재로 재생성한 이력이 있다.",
+    "group": "Box–Cox",
+    "sources": [
+      "results/gamma_long/run_001/reports/report_1793852690561933910/test/raw/per_IC_NRMSE.csv"
+    ]
+  },
+  {
+    "name": "06_gamma_accuracy",
+    "caption": "장기 γ 실험의 정확도 동시 통과 수. raw의 유일한 통과는 P-only γ=.2의 IC39였다. 보정 포함 결과도 최대 3/18이었다.",
+    "group": "Box–Cox",
+    "sources": [
+      "results/gamma_long/run_001/reports/report_1793852690561933910/test/raw/per_IC_NRMSE.csv",
+      "results/gamma_long/run_001/reports/report_1793852690561933910/test/repaired/per_IC_NRMSE.csv"
+    ]
+  },
+  {
+    "name": "07_metric_trap",
+    "caption": "IC07의 γ=.2 ANN+P 장기 repaired 예측. 온도 NRMSE 0.00161만으로 전체 반응계를 잘 맞춘다고 판단할 수 없다.",
+    "group": "평가 해석",
+    "sources": [
+      "selected_trace_provenance.json"
+    ]
+  },
+  {
+    "name": "08_metric_trap_delta",
+    "caption": "서로 다른 y축 범위를 명시한 온도 변화 비교. Cantera의 총 변화는 약0.0068K, NN은 약2.02K였다.",
+    "group": "평가 해석",
+    "sources": [
+      "selected_trace_provenance.json"
+    ]
+  },
+  {
+    "name": "09_IC39_three_raw",
+    "caption": "세 raw 정확도 통과 설정 모두 같은 IC39였다. 그림은 점화 구간 확대이며 전체10ms/초기0.1ms 점수는 별도 표로 제시한다.",
+    "group": "성공 사례의 범위",
+    "sources": [
+      "results/raw_history_audit/run_001/passing_variable_NRMSE.csv",
+      "selected_trace_provenance.json"
+    ]
+  },
+  {
+    "name": "10_deeponet_temporal",
+    "caption": "DeepONet계 시간 관련 비교는 각3개 평균, 모델당150초+최대150초의 동일 상한이다.",
+    "group": "시간·다중 스텝",
+    "sources": [
+      "results/temporal_pilot/run_001/report/test_summary.csv",
+      "results/temporal_pilot_long/run_001/report/test_summary.csv"
+    ]
+  },
+  {
+    "name": "11_ANN_results",
+    "caption": "일반 ANN에서는 단기·장기 모두 정확도 문턱 통과가 없었다.",
+    "group": "시간·다중 스텝",
+    "sources": [
+      "results/ann_multistep/run_001/report/test_summary.csv",
+      "results/ann_multistep_long/run_001/report/test_summary.csv"
+    ]
+  },
+  {
+    "name": "12_ANN_seed_variation",
+    "caption": "일반 ANN 다중 스텝의 seed별 편차가 크며, 3개 평균이 최선의 단일 seed보다 완주율이 낮았다. 모든 설정의 정확도 통과는0이다.",
+    "group": "ANN 다중 스텝",
+    "sources": [
+      "results/ann_multistep/run_001/report/test_summary.csv",
+      "results/ann_multistep_long/run_001/report/test_summary.csv"
+    ]
+  },
+  {
+    "name": "13_ANN_K64_probe",
+    "caption": "장기에서는 K64를 유지했다. seed11은평탄기준에 도달했지만 정확한10ms 예측을 얻지 못했다. 평탄은정확도 인증이 아니다.",
+    "group": "ANN 다중 스텝",
+    "sources": [
+      "results/ann_multistep_long/run_001/models/multistep_seed11/history.csv",
+      "results/ann_multistep_long/run_001/models/multistep_seed22/history.csv",
+      "results/ann_multistep_long/run_001/models/multistep_seed33/history.csv"
+    ]
+  },
+  {
+    "name": "14_latest_completion",
+    "caption": "같은 최신 시간 예산을 쓴 두 아키텍처 비교. 완주 수의 비교이며 정확도와 보존법칙 만족을 뜻하지 않는다.",
+    "group": "최신 비교",
+    "sources": [
+      "results/temporal_pilot_long/run_001/report/test_summary.csv",
+      "results/ann_multistep_long/run_001/report/test_summary.csv"
+    ]
+  },
+  {
+    "name": "15_pass_variable_table",
+    "caption": "raw 통과3설정의10변수 NRMSE. 세설정은모두IC39이며 N2를포함해도통과결과가같다.",
+    "group": "부록",
+    "sources": [
+      "results/raw_history_audit/run_001/passing_variable_NRMSE.csv"
+    ]
+  },
+  {
+    "name": "16_K_curriculum",
+    "caption": "짧은예측부터길게확장한다. K64에서도1~64번째오차를모두평균하며, 장기는최대150초추가이고평탄종료면더짧다.",
+    "group": "학습 방식",
+    "sources": [
+      "results/ann_multistep/run_001/config.json",
+      "results/ann_multistep_long/run_001/config.json"
+    ]
+  }
+]
