@@ -64,7 +64,7 @@ def gym_info(g):
     L['triggered']=L.rounds-L.forced.astype(int)
     by=lambda col:{int(k):int(v) for k,v in L.groupby('pass_')[col].sum().items()}
     return dict(complete=(Path(g)/'manifest.json').exists(),episodes=int(len(L)),triggered=int(L.triggered.sum()),forced=int(L.forced.sum()),
-        triggered_by_pass=by('triggered'),forced_by_pass=by('forced'),pairs=int(len(glob.glob(f'{g}/rounds/*.npz'))*1000),
+        triggered_by_pass=by('triggered'),forced_by_pass=by('forced'),pairs=int(L.rounds.sum())*1000,
         seconds=float(json.load(open(Path(g)/'manifest.json'))['seconds']) if (Path(g)/'manifest.json').exists() else None,
         triggered_cases={int(c):int(v) for c,v in L.groupby('case').triggered.sum().items() if v>0},
         max_R=float(L.max_R_smoothed_pre.max()))
@@ -136,7 +136,7 @@ def main():
     RD=[dict(R,gym_stats=gym_info(R['gym']),train_stats=train_info(R['train'],R['data']) if Path(R['data']).exists() else None,evaluated=R['key'] in M) for R in rounds()]
     cost=dict(online_rounds=rounds_on,online_rounds_total=int(sum(rounds_on.values())),online_ode_label_steps=int(sum(rounds_on.values())*10000),
         online_finetune_cpu_s=ft_on,gym_rounds={int(k):int(v) for k,v in gym.groupby('pass_').rounds.sum().items()},
-        gym_ode_label_steps=int(gym.rounds.sum()*10000),gym_pairs=int(len(glob.glob('results/t1000_gym/rounds/*.npz'))*1000),
+        gym_ode_label_steps=int(gym.rounds.sum()*10000),gym_pairs=int(gym.rounds.sum())*1000,
         gym_seconds=float(json.load(open('results/t1000_gym/manifest.json'))['seconds']),hybrid_ode_steps=int(hm['ode_calls']),ewc_train=ewc_train,urc_train=urc_train,
 )
     # test without case 7 (strategy 5 never ignites it, so it has no tau error and dominates the mean T RMSE)
