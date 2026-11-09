@@ -1,0 +1,30 @@
+Run from /workspace/personal with /workspace/kinetics-venv/bin/python.
+These commands evaluate frozen released checkpoints; they do not train.
+Every output path must be NEW. Do not overwrite run_001, run_002,
+run_003_10ms or analysis_001.
+
+Source/hash audit only:
+  /workspace/kinetics-venv/bin/python -m kinetics.literature_reproduction
+
+Original demo protocol, 1 us x 500 = 0.5 ms:
+  /workspace/kinetics-venv/bin/python -m kinetics.literature_reproduction --execute --output results/literature_reproduction/NEW_SHORT --max-wall-seconds 600
+
+Separate horizon diagnostic, same weights and dt, 1 us x 10000 = 10 ms:
+  /workspace/kinetics-venv/bin/python -m kinetics.literature_reproduction --execute --steps 10000 --output results/literature_reproduction/NEW_LONG --max-wall-seconds 400
+
+Replot existing evidence, without prediction/training:
+  /workspace/kinetics-venv/bin/python scripts/report_literature_reproduction.py --roots results/literature_reproduction/run_002 results/literature_reproduction/run_003_10ms --output results/literature_reproduction/NEW_ANALYSIS
+
+Focused scientific checks:
+  /workspace/kinetics-venv/bin/python -m pytest -q tests/test_literature_reproduction.py
+
+Optional dependency in a fresh compatible environment:
+  python -m pip install -r requirements-literature.txt
+
+The author source/license/weights are fixed in third_party/zhang_kinetics.
+The failed first harness parity attempt remains in run_001, with its failure
+record. Successful original-script parity is in run_002 and run_003_10ms.
+No original research data, prior checkpoint, branch, or Git remote was changed.
+No claim is made to reproduce author training or the complete 2025 ANN-hard
+experiment. DeepONet's source audit and unresolved exact-reproduction details
+are in configs/literature_baseline_plan.json; no new DeepONet was trained here.
