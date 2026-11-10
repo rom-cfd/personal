@@ -1,0 +1,220 @@
+{
+  "status": "analysis_complete_not_reproduction_success",
+  "thesis": "https://repository.lib.ncsu.edu/server/api/core/bitstreams/259ce066-870d-4034-8ec7-f140115facfd/content",
+  "differences": [
+    [
+      "Method source",
+      "2023 early-preprint approximation",
+      "Detailed thesis chapter 3"
+    ],
+    [
+      "Hidden networks",
+      "Plain dense MLP",
+      "Modified MLP with two encoders and gates in every sub-network"
+    ],
+    [
+      "Condition parameter",
+      "No ParamNet",
+      "Separate equivalence-ratio ParamNet"
+    ],
+    [
+      "Optimizer / LR",
+      "Adam, fixed 0.01",
+      "Adamax, 0.01 times 0.9^(update/5000)"
+    ],
+    [
+      "Training objective",
+      "Single future-state MSE only",
+      "100k single-step updates, then 20k final-5-step endpoint MSE"
+    ],
+    [
+      "Chemistry",
+      "Cantera h2o2.yaml (GRI-derived)",
+      "Pinned public Burke release; verified H2/air reduction"
+    ],
+    [
+      "Train / horizon / window",
+      "25 IC / 0.5ms / 20us",
+      "99 IC / 1ms / 40us; inference in 20us windows"
+    ],
+    [
+      "Exact fidelity limits",
+      "Several missing details were assumptions",
+      "Private fusion and exact 20-reaction mechanism remain unavailable"
+    ]
+  ],
+  "optimizer_diagnostics": [
+    {
+      "name": "dense_adam_1e2_fixed",
+      "family": "dense",
+      "optimizer": "Adam",
+      "lr": "0.01",
+      "decay": "False",
+      "parameters": "46186",
+      "updates": "6000",
+      "best_update": "3500",
+      "best_window_MSE": "0.00018611177802085876",
+      "complete": "2",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "0.7942104733768489",
+      "wall_seconds": "50.34191904502222"
+    },
+    {
+      "name": "dense_adam_1e3_fixed",
+      "family": "dense",
+      "optimizer": "Adam",
+      "lr": "0.001",
+      "decay": "False",
+      "parameters": "46186",
+      "updates": "6000",
+      "best_update": "6000",
+      "best_window_MSE": "0.00022523864754475653",
+      "complete": "12",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "0.2940948496580455",
+      "wall_seconds": "56.722783713950776"
+    },
+    {
+      "name": "dense_adamax_1e2_decay",
+      "family": "dense",
+      "optimizer": "Adamax",
+      "lr": "0.01",
+      "decay": "True",
+      "parameters": "46186",
+      "updates": "6000",
+      "best_update": "6000",
+      "best_window_MSE": "8.416151104029268e-05",
+      "complete": "4",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "0.3738847466729005",
+      "wall_seconds": "53.22783252201043"
+    },
+    {
+      "name": "dense_adamax_1e3_decay",
+      "family": "dense",
+      "optimizer": "Adamax",
+      "lr": "0.001",
+      "decay": "True",
+      "parameters": "46186",
+      "updates": "6000",
+      "best_update": "5500",
+      "best_window_MSE": "0.00037405171315185726",
+      "complete": "9",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "0.26759554236211414",
+      "wall_seconds": "56.80337973299902"
+    },
+    {
+      "name": "gated_adamax_1e2_decay",
+      "family": "gated",
+      "optimizer": "Adamax",
+      "lr": "0.01",
+      "decay": "True",
+      "parameters": "47146",
+      "updates": "6000",
+      "best_update": "6000",
+      "best_window_MSE": "2.606381895020604e-05",
+      "complete": "3",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "0.567149915458408",
+      "wall_seconds": "74.96135582902934"
+    },
+    {
+      "name": "gated_adamax_1e3_decay",
+      "family": "gated",
+      "optimizer": "Adamax",
+      "lr": "0.001",
+      "decay": "True",
+      "parameters": "47146",
+      "updates": "6000",
+      "best_update": "6000",
+      "best_window_MSE": "0.0001857149472925812",
+      "complete": "0",
+      "total": "12",
+      "joint5": "0",
+      "median_worst5": "",
+      "wall_seconds": "74.74744450999424"
+    }
+  ],
+  "append_refinement_probe": [
+    {
+      "candidate": "single_step_control",
+      "K": "1",
+      "selected_update": "4500",
+      "complete": "2",
+      "joint5": "0",
+      "total": "12",
+      "median_worst5": "0.5276212122793047",
+      "window_MSE": "1.066794266080251e-05",
+      "five_step_MSE": "0.0009659083443693817"
+    },
+    {
+      "candidate": "five_step_refinement",
+      "K": "5",
+      "selected_update": "1500",
+      "complete": "0",
+      "joint5": "0",
+      "total": "12",
+      "median_worst5": "",
+      "window_MSE": "0.0015991802792996168",
+      "five_step_MSE": "0.0004183922428637743"
+    }
+  ],
+  "seen_IC_sampling_probe": [
+    {
+      "arm": "uniform",
+      "selected_update": "5000",
+      "updates": "8000",
+      "active_seconds": "147.60865437064786",
+      "numerically_complete": "True",
+      "joint5_curve": "False",
+      "strict_state_valid": "False",
+      "worst_NRMSE": "0.762398649543703",
+      "T": "0.25394697031105373",
+      "H2": "0.5417568635050642",
+      "H": "0.6302342273681204",
+      "O2": "0.5377494118469289",
+      "H2O": "0.762398649543703"
+    },
+    {
+      "arm": "initial_transient_focused",
+      "selected_update": "8000",
+      "updates": "8000",
+      "active_seconds": "156.93177544424543",
+      "numerically_complete": "True",
+      "joint5_curve": "False",
+      "strict_state_valid": "True",
+      "worst_NRMSE": "0.6843636760978834",
+      "T": "0.2149269497352611",
+      "H2": "0.36685578907824307",
+      "H": "0.19954362745995272",
+      "O2": "0.35814647054722104",
+      "H2O": "0.6843636760978834"
+    }
+  ],
+  "old_loss": {
+    "minimum": 9.333946218248457e-05,
+    "maximum": 6151.7685546875,
+    "last": 0.05593382939696312
+  },
+  "observations": [
+    "Original fixed-lr Adam run is unstable; 200k updates are not evidence of convergence.",
+    "In matched short diagnostics, lr 0.001 raised strict validation completion from 2/12 to 12/12; both had zero joint5 passes.",
+    "Adamax and modified-MLP gating can reduce fixed-window MSE without solving self-fed trajectory accuracy.",
+    "Appending K5 endpoint refinement to an already poor short model did not yield a joint5 pass.",
+    "The one-IC capacity and sampling probes use a seen trajectory. They cannot demonstrate generalization.",
+    "Broad reconstruction changes are source-fidelity corrections, not controlled proof that any single omission caused all failure."
+  ],
+  "limits": [
+    "Author exact JAX code/weights for this method are unavailable.",
+    "The pinned Burke variant has 10 species and 25 Cantera reaction entries, while the thesis says 20 reactions.",
+    "Three-way coefficient fusion and log(0) floor are declared reconstruction choices.",
+    "A tiny negative species is reported as nonphysical under strict raw criteria; unconstrained curve agreement is a separate diagnostic.",
+    "All future held-out evaluation must occur after freezing validation selection. No soft constraint or training repair is used."
+  ]
+}
