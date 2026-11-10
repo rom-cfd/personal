@@ -1,0 +1,109 @@
+{
+  "title": "Venturi--Casey 0D isobaric H2/air flexDeepONet protocol reproduction",
+  "paper": "https://arxiv.org/abs/2204.12670v3",
+  "doi": "https://doi.org/10.1016/j.cma.2022.115718",
+  "repository": "https://github.com/simoneventuri/ROMNet_",
+  "commit": "07278fc3ffe9eda7be7eed2cf96068f4be3efa51",
+  "author_source_sha256": {
+    "input/0DReactor/DeepONet/0DReactor_H2_TestCase3/ROMNet_Input.py": "af32d74d44695812a190ad26715da03086fd65cad716352fd8d2ee7edf0fdb03",
+    "scripts/generating_data/0DReactor/Generate_Data_1_Isobaric.py": "b069bfa5c85403223fae32f2d3510aa7319513a6876eb0a89c1b4f484be70971",
+    "scripts/generating_data/0DReactor/Generate_Data_3.ipynb": "3ea0dd05ee0b7b40dfecc389b40f8582cc43ac6bbde74c4d4c67c035fcb9fa68",
+    "romnet/architecture/deeponet.py": "427715d4ee22d2a2ab6a2ad0db0787b7daa0ba57c462c0be7cbbf00ec7caf631",
+    "romnet/architecture/building_blocks/normalization.py": "dc1be292936d379bd2fdb20c989c053986e04afe510bb544b93bdebd35f72a9e",
+    "romnet/architecture/building_blocks/system_of_components/deeponet_system.py": "fd0428f1d37e29d316343d81fc474d0a7588c8f3a966d578f30d61dae8762510",
+    "romnet/architecture/building_blocks/component.py": "c90329cb328901b3afb732ebd8ccc518c77b093035718555cdf2b518f89ba707",
+    "romnet/architecture/building_blocks/layer.py": "6fafb0dc384ba223cdb12d4d73e9fcd30da736c3c3d42e626ef669778bdfb1cb",
+    "romnet/data/data.py": "9583bf5dc642b81812ae22554758cacf12ffcc0b83e977d3b0b61e7ae3dc79b1",
+    "romnet/__init__.py": "e751b6dd28f4863969d6bacca6f48d63c0385a5585fd2c73a470a2febdfc91f8"
+  },
+  "parameters": 34038,
+  "branch": {
+    "count": 19,
+    "layers": [
+      19,
+      16,
+      16,
+      16,
+      9
+    ],
+    "hidden_activation": "tanh"
+  },
+  "trunk": {
+    "count": 19,
+    "layers": [
+      1,
+      16,
+      16,
+      16,
+      8
+    ],
+    "hidden_activation": "tanh"
+  },
+  "stretch": {
+    "count": 1,
+    "layers": [
+      19,
+      16,
+      16,
+      16,
+      19
+    ],
+    "hidden_activation": "tanh",
+    "output": "softplus"
+  },
+  "query_transform": "ln(t * stretch_j(x0)); multiply BEFORE log as in released component.py",
+  "output": "dot(branch_j[:8], trunk_j) + branch_j[8]; multiply by output_range",
+  "preprocessing": "Released range scaling: divide by range without subtracting minimum. Input CustomNormalization extrema initialize at ones; preserved explicitly. Output extrema use the 500-scenario training pool.",
+  "training": {
+    "dtype": "float64",
+    "optimizer": "Keras Adam",
+    "lr": 0.001,
+    "beta1": 0.9,
+    "beta2": 0.999,
+    "epsilon": 1e-07,
+    "lr_decay": ".99 ** (global_update/10000)",
+    "batch": 256,
+    "epochs": 100000,
+    "regularization": "L1=L2=1e-12 on all kernels and hidden biases; no final bias regularization",
+    "early_stopping": {
+      "metric": "validation total loss",
+      "min_delta": 1e-08,
+      "patience_epochs": 3000
+    }
+  },
+  "paper_table_S3_RMSE": {
+    "T": 1.3629,
+    "H2": 7.4989e-05,
+    "H": 2.1747e-05,
+    "O": 2.738e-05,
+    "O2": 0.00036907,
+    "OH": 2.891e-05,
+    "H2O": 0.00033034,
+    "HO2": 3.037e-07,
+    "H2O2": 2.0288e-08,
+    "N": 2.5091e-09,
+    "NH": 7.159e-10,
+    "NH2": 3.002e-10,
+    "NH3": 1.4949e-09,
+    "NNH": 4.65e-10,
+    "NO": 8.5739e-06,
+    "NO2": 3.3697e-09,
+    "N2O": 1.5176e-09,
+    "HNO": 5.749e-10,
+    "N2": 2.441e-05
+  },
+  "comparison_limits": [
+    "No released trained Case3 checkpoint or exact original LHS random seed was located.",
+    "Independent batched PyTorch implementation, checked against original source operations and TensorFlow gradients/Adam; not an original-weight replay.",
+    "Cantera 3.2 uses the distributed GRI30 YAML; original library version may differ.",
+    "Primary external test is 10 independent LHS conditions as in the paper; another 32 conditions are a separately labeled robustness check.",
+    "Pointwise train/validation split follows released notebook. All external test ICs remain isolated until selection is frozen.",
+    "Direct full-trajectory operator is not a chemistry stepper. It cannot establish success for 20us feedback or CFD coupling.",
+    "Time cap may stop before published training convergence; do not equate time-cap with plateau or impossibility."
+  ],
+  "prior_observations": [
+    "Previous React-DeepONet K5 gradient L2 was about164 times K1 on the controlled batch; lowering LR mitigated the first-update collapse.",
+    "Previous strict raw eligibility also rejected tiny negative interior0.1us queries, despite nonnegative saved representative20us endpoints.",
+    "Private fusion and exact Burke20-reaction file remained unresolved in the previous reconstruction."
+  ]
+}
