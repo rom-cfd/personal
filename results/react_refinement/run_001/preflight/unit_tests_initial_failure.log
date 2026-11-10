@@ -1,0 +1,20 @@
+......F                                                                  [100%]
+=================================== FAILURES ===================================
+_______ test_arc_pool_emphasizes_changes_and_preserves_boundaries_and_ic _______
+
+    def test_arc_pool_emphasizes_changes_and_preserves_boundaries_and_ic():
+        a=np.zeros((2,101,11),dtype=np.float32);a[:,50:,1]=1;a[1,:,0]=2
+        pool=arc_time_pool(a,16)
+        assert torch.equal(pool[:,0],torch.zeros(2,dtype=torch.int64))
+>       assert torch.equal(pool[:,-1],torch.full((2,),100,dtype=torch.int64))
+E       assert False
+E        +  where False = <built-in method equal of type object at 0x7f8ff2392cc0>(tensor([50, 50]), tensor([100, 100]))
+E        +    where <built-in method equal of type object at 0x7f8ff2392cc0> = torch.equal
+E        +    and   tensor([100, 100]) = <built-in method full of type object at 0x7f8ff2392cc0>((2,), 100, dtype=torch.int64)
+E        +      where <built-in method full of type object at 0x7f8ff2392cc0> = torch.full
+E        +      and   torch.int64 = torch.int64
+
+tests/test_react_refinement.py:60: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_react_refinement.py::test_arc_pool_emphasizes_changes_and_preserves_boundaries_and_ic
+1 failed, 6 passed in 1.14s
