@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0D flexDeepONet: 완료 결과와 되먹임 방식의 문헌 구분</title>
+<style>
+body{max-width:1120px;margin:32px auto;padding:0 22px;font:17px/1.8 system-ui,sans-serif;color:#162330;background:#fafbfc}
+h1,h2{line-height:1.4}h2{margin-top:2.4em;border-bottom:2px solid #b4c4d4;padding-bottom:8px}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:15px}th,td{border:1px solid #c7d0d9;padding:9px;text-align:left;vertical-align:top}th{background:#edf2f7}
+img{width:100%;height:auto}figure{margin:26px 0}figcaption,.small{font-size:14px;color:#455765}
+a{color:#075d96}code,pre{background:#eaf0f5;padding:3px 6px;white-space:pre-wrap;overflow-wrap:anywhere}
+.lead{border-left:5px solid #3279a4;padding:12px 20px;background:#edf5fa}.limit{border-left:5px solid #b75c33;padding:12px 20px;background:#fff4ed}
+@media(max-width:750px){body{font-size:16px}table{font-size:12px}td,th{padding:5px}}
+</style></head><body>
+<h1>0D 수소/공기 점화 flexDeepONet 완료 결과</h1>
+<p class="small">결과 완료: 2026-11-11 09:50 한국시간 · 정리: 2026-11-16 · seed 11 단일 실행 · 보존 원본: <code>run_001</code></p>
+<p class="lead"><strong>전체 궤적을 직접 예측하는 문헌 방식에서 주요 변수 곡선의 정확도는 개선됐다.</strong>
+검증 선택 모델은 독립 42조건 중 34조건에서 주요 9변수의 세 시간구간 정확도 기준을 모두 만족했다.
+그러나 음수 질량분율이 있어 물리 유효성 통과는 0/42다. 기존 ANN처럼 예측 상태를 되먹여 시간 진행하는 솔버의 성능 재현은 아직 완료하지 못했다.</p>
+
+<h2>1. 왜 이번에는 다른 문헌을 재현했나</h2>
+<p>기존 연구는 현재 상태에서 짧은 시간 뒤를 예측하고, 그 예측값을 다음 입력으로 사용해 반복 진행했다.
+이 방식의 DeepONet 재현이 잘 되지 않아, 공개 코드에 구조·정규화·최적화 설정이 구체적으로 남아 있는 Venturi–Casey의 flexDeepONet Case3로 옮겨
+먼저 0D 점화 궤적 자체를 문헌 수준에 가깝게 예측할 수 있는지 확인했다. 이번 결과는 그 별도 기준선으로 보존한다.</p>
+<p>이전 React 실험의 직접 진단에서는 K1에서 K5 학습으로 바뀔 때 한 배치의 gradient L2가 약 164배 커졌고,
+기존 학습률의 첫 업데이트에서 검증 성능이 급락했다. 학습률을 1/100로 줄인 통제에서는 그 즉시 급락이 사라졌다.
+또한 내부 시간 질의의 작은 음수 농도가 strict 판정에 영향을 주었다. 이는 관측한 원인 일부이며 전체 실패 원인을 모두 규명했다는 뜻은 아니다.</p>
+<p><a href="../../react_refinement_transition/run_001/analysis.json">K5 전환 진단</a> ·
+<a href="../../react_deeponet_failure_analysis/run_002/REPORT.html">이전 실패 분석</a> ·
+<a href="../../react_deeponet_rebuild/run_001/report/summary.csv">이전 상세 재구현 결과</a></p>
+
+<h2>2. 이번 논문의 방식과 원래 목표는 어떻게 다른가</h2>
+<table><thead><tr><th>구분</th><th>입력 → 출력</th><th>다음 예측에 넣는 값</th><th>이번에 입증한 범위</th></tr></thead><tbody>
+<tr><td>기존 ANN 시간 진행</td><td>현재 상태 xₙ → 2 μs 뒤 상태 xₙ₊₁</td><td>방금 예측한 상태 xₙ₊₁</td><td>자기 예측 오차가 시간에 따라 쌓이는 화학 솔버</td></tr>
+<tr><td>React-DeepONet 문헌</td><td>현재 상태와 짧은 간격 Δt → 해당 창의 미래 상태</td><td>창 끝의 예측 상태를 다음 창의 초기조건으로 사용</td><td>원래 ANN과 같은 시간 진행 유형. 우리 이전 재현은 정확도 성공이 충분하지 않았다.</td></tr>
+<tr><td>이번 flexDeepONet 문헌</td><td>실험 시작 상태 x₀와 질의시간 t → 그 시각 상태 x(t)</td><td>모든 시간 질의에 동일한 원래 x₀</td><td>초기조건이 주어졌을 때 전체 점화 궤적을 직접 예측</td></tr>
+</tbody></table>
+<pre>기존: x₀ → 예측 x₁ → 예측 x₂ → 예측 x₃ …
+이번: (x₀, t₁) → x(t₁)
+      (x₀, t₂) → x(t₂)
+      (x₀, t₃) → x(t₃)</pre>
+<p><strong>이번 재현은 실제로 그 논문이 사용한 전역 궤적 방식이다.</strong> Venturi–Casey §3.3은 초기 열화학 상태와 시간을 미래 상태에 대응시킨다.
+<strong>기존 방식의 0D 논문도 있다.</strong> Kumar–Echekki의 React-DeepONet은 짧은 창의 끝값을 다음 창에 되먹이며,
+공개 원문 §2.2와 Fig.1(a)에 그 절차가 명시돼 있다. 바로 이전에 우리가 재현하려고 시도했던 문헌이다.
+같은 시간 진행 유형이라는 뜻이며, 모든 논문이 우리와 동일한 2 μs·화학종·반응기구를 사용했다는 뜻은 아니다.</p>
+<p>DeepONet이라는 구조 자체가 전역 예측 또는 시간 진행 중 한쪽만 강제하지는 않는다. 무엇을 입력으로 학습했고 추론 때 무엇을 되먹이는지가 차이를 만든다.
+이번 모델을 임의의 중간 상태에 넣고 2 μs씩 반복한다고 해서 곧바로 검증된 솔버가 되지는 않는다. 그 용도에는 중간 상태를 포함한 학습과 별도 반복 예측 검증이 필요하다.</p>
+
+<h2>3. 이번 실행의 학습·검증 조건</h2>
+<p>저자 공개 ROMNet_ 설정을 기준으로 독립 PyTorch 구현했다. 총 34,038개 파라미터이며, 19변수별 branch/trunk와 공유 Stretch 네트워크가 있다.
+입력 상태에 따라 시간을 늘이거나 줄이고 로그시간에서 곡선을 예측한다. float64, seed 11 하나, Keras Adam과 저자 설정의 정규화 동작을 대조했다.
+학습 중 물리 제약, 사후 물리 보정, 복원 ANN은 사용하지 않았다.</p>
+<p>Cantera 3.2의 GRI30 전체 53종·325반응 항목을 적분하고, 수소/공기에서 탄소·Ar을 제외한 T+18종을 예측했다.
+1 atm, 초기온도 1000–2000 K, 당량비 0.5–4의 학습 500초기조건 × 500시각이다. 당량비는 연료와 공기의 혼합 비율을 나타낸다.
+초기 시각과 10⁻⁷–1초 로그격자를 사용했다.</p>
+<p>저자 공개 notebook처럼 학습 궤적들의 시간점을 80/20으로 나눠 모델 선택에 사용했다.
+이는 새로운 초기조건 검증과 다르다. 별도로 동결한 독립 10조건과 추가 32조건은 선택을 끝낸 뒤 평가했다.
+42조건은 모두 학습 매개변수 범위 안에 있으며 외삽 성공의 근거가 아니다.</p>
+<p>원저자 가중치와 원래 LHS 난수시드를 확보하지 못했으므로 동일 데이터·가중치의 복제는 아니다.
+코드 설정과 수학 연산을 맞춘 프로토콜 재구현이다. <a href="../run_001/protocol_audit.json">원문·코드 대조와 차이</a></p>
+
+<h2>4. 곡선 정확도와 물리 유효성은 나눠 읽어야 한다</h2>
+<p>IC는 <em>initial condition</em>, 즉 초기조건이다. 여기서는 온도·당량비가 다른 하나의 실험 조건을 뜻한다.
+각 변수의 NRMSE는 <code>RMSE(Cantera, NN) / RMS(Cantera)</code>인 무차원 비율이다. 백분율이 아니다.
+같은 시각의 두 값을 비교한 오차를 평가 구간 전체에 모아 계산한다. 모든 개별 시각에서 오차가 0.1 이하였다는 뜻은 아니다.</p>
+<p>주요 9변수는 T, H₂, H, O, O₂, OH, H₂O, HO₂, H₂O₂다. 각 변수 NRMSE가 모두 0.1 이하일 때 joint9 곡선 통과다.
+전체 1초 로그격자, 초기 0.1 ms 균일격자, Cantera 점화과정에 맞춘 가변 확대창을 각각 평가했다.
+아래 표의 곡선 통과는 세 구간 모두를 동시에 만족한 수다. N₂와 나머지 질소종은 추가 변수로 별도 확인했다.</p>
+<table><thead><tr><th>독립 테스트</th><th>가중치</th><th>유한한 전역 질의</th><th>주요 9변수 곡선 통과<br>전체+초기+점화창</th><th>물리 유효성 통과</th></tr></thead><tbody><tr><td>문헌 유사 독립 10조건</td><td>검증 선택 모델</td><td>10/10</td><td>8/10</td><td>0/10</td></tr><tr><td>문헌 유사 독립 10조건</td><td>마지막 모델</td><td>10/10</td><td>7/10</td><td>0/10</td></tr><tr><td>별도 독립 32조건</td><td>검증 선택 모델</td><td>32/32</td><td>26/32</td><td>0/32</td></tr><tr><td>별도 독립 32조건</td><td>마지막 모델</td><td>32/32</td><td>19/32</td><td>0/32</td></tr></tbody></table>
+<p>유한한 전역 질의는 모델 출력이 NaN/Inf 없이 계산됐다는 뜻이다. 반복 적분을 완주한 수가 아니다.
+선택 모델은 검증 오차가 가장 낮았던 가중치, 마지막 모델은 학습이 끝난 시점의 가중치다. 마지막 모델이 더 좋지는 않았다.</p>
+<p class="limit">음수 질량분율까지 검사하면 두 모델 모두 42조건 전체가 물리 유효성을 통과하지 못한다.
+선택 모델의 최저 질량분율은 −9.35424×10⁻⁴(O₂)이며 단순 반올림 오차로 볼 수 없다.
+질량분율 합의 최대 |ΣY−1|은 0.006339다. 출력에 clipping을 가해 성공으로 바꾸지 않고 원본 그대로 보존했다.</p>
+<p>전체 19변수의 곡선 기준을 모두 만족한 선택 모델 조건은 전체 로그격자에서 19/42이고, 초기 구간과 점화창에서는 각각 0/42다.
+주요 수소 반응종이 잘 맞는 것과 모든 질소 미량종이 맞는 것은 다르다. 예를 들어 전체 구간 NO₂ 최대 NRMSE는 15.47이며,
+초기에 정답 농도가 거의 0인 미량종은 작은 절대 오차도 큰 NRMSE가 될 수 있다. 지표를 임의로 바꾸지 않았다.</p>
+
+<h2>5. 논문의 RMSE 수준과는 얼마나 가까운가</h2>
+<p>Table S3와 같은 물리단위 RMSE로 비교했다. 온도는 K, 화학종은 질량분율 단위다.
+독립 10조건의 선택 모델 오차는 19변수에서 문헌값의 약 1.14–2.01배다. 같은 규모의 오차에 가까워졌지만 문헌 수치를 그대로 달성한 것은 아니다.
+저자의 원래 10조건 난수시드가 없어 동일 표본끼리 비교한 결과도 아니다.</p>
+<table><thead><tr><th>변수</th><th>이번 선택 모델 RMSE</th><th>문헌 Table S3 RMSE</th><th>이번 / 문헌</th></tr></thead><tbody><tr><td>T</td><td>2.733146</td><td>1.3629</td><td>2.005</td></tr><tr><td>H2</td><td>9.650369e-05</td><td>7.4989e-05</td><td>1.287</td></tr><tr><td>H</td><td>2.596535e-05</td><td>2.1747e-05</td><td>1.194</td></tr><tr><td>O</td><td>5.044464e-05</td><td>2.738e-05</td><td>1.842</td></tr><tr><td>O2</td><td>0.0005235259</td><td>0.00036907</td><td>1.419</td></tr><tr><td>OH</td><td>4.710683e-05</td><td>2.891e-05</td><td>1.629</td></tr><tr><td>H2O</td><td>0.0005145681</td><td>0.00033034</td><td>1.558</td></tr><tr><td>HO2</td><td>5.196686e-07</td><td>3.037e-07</td><td>1.711</td></tr><tr><td>H2O2</td><td>3.502046e-08</td><td>2.0288e-08</td><td>1.726</td></tr><tr><td>N</td><td>4.106808e-09</td><td>2.5091e-09</td><td>1.637</td></tr><tr><td>NH</td><td>1.110548e-09</td><td>7.159e-10</td><td>1.551</td></tr><tr><td>NH2</td><td>3.619112e-10</td><td>3.002e-10</td><td>1.206</td></tr><tr><td>NH3</td><td>2.110588e-09</td><td>1.4949e-09</td><td>1.412</td></tr><tr><td>NNH</td><td>6.340335e-10</td><td>4.65e-10</td><td>1.364</td></tr><tr><td>NO</td><td>9.745095e-06</td><td>8.5739e-06</td><td>1.137</td></tr><tr><td>NO2</td><td>5.402535e-09</td><td>3.3697e-09</td><td>1.603</td></tr><tr><td>N2O</td><td>1.965429e-09</td><td>1.5176e-09</td><td>1.295</td></tr><tr><td>HNO</td><td>6.845295e-10</td><td>5.749e-10</td><td>1.191</td></tr><tr><td>N2</td><td>3.759487e-05</td><td>2.441e-05</td><td>1.540</td></tr></tbody></table>
+
+<h2>6. 좋은 곡선과 실패가 남은 곡선을 함께 보존</h2>
+<figure><a href="figures/paper_like_IC0_ignition.png"><img src="figures/paper_like_IC0_ignition.png" alt="사전 지정 첫 테스트 조건의 19변수 점화 확대, Cantera·선택·마지막 가중치 비교"></a>
+<figcaption>사전 지정 첫 테스트 조건 IC0: T₀=1450 K, φ=2.425. 성능을 보고 고른 최선 사례가 아니다.
+주요 9변수는 통과하지만 NH₃·NO₂ 등은 점화 과정을 잘 따르지 못한다. 검정=Cantera, 빨강 점선=선택 모델, 파랑 점선=마지막 모델.</figcaption></figure>
+<figure><a href="figures/robustness_IC26_ignition.png"><img src="figures/robustness_IC26_ignition.png" alt="전체 구간 주요 9변수 중 최대 오차가 가장 큰 추가 테스트 IC26의 점화 확대"></a>
+<figcaption>선택 모델의 전체 구간 worst9가 가장 큰 추가 테스트 IC26: T₀=1140.625 K, φ=3.5078125.
+worst9는 주요 9변수 NRMSE 중 최대값으로, 이 조건에서는 0.17611이다. 전체 PDF의 37페이지에 해당한다.
+좋은 한 사례가 전체 조건의 성공을 뜻하지 않으므로 이 사례도 함께 보존했다.</figcaption></figure>
+<p><a href="../run_001/report/all_profiles.pdf">전체 42조건·19변수 PDF</a> ·
+<a href="../run_001/report/ignition_zoom.pdf">전체 42조건 점화 확대 PDF</a> — 각각 42페이지.
+점화 확대는 조건마다 Cantera 점화구간에 따라 범위가 다르며, 고정 0.1 ms 그림이 아니다.</p>
+
+<h2>7. 학습은 어디까지 했고 무엇을 보존했나</h2>
+<table><thead><tr><th>항목</th><th>실제 값</th><th>뜻</th></tr></thead><tbody>
+<tr><td>활성 학습시간</td><td>18,661.90초 (약 5시간 11분)</td><td>가중치 업데이트에 실제 사용한 시간. 준비·보고·평가 시간과 구분한다.</td></tr>
+<tr><td>실행 전체 경과</td><td>21,122.01초 (약 5시간 52분)</td><td>앞서 차감한 준비 비용 73.50초를 합쳐도 총 6시간 상한 이내.</td></tr>
+<tr><td>선택 가중치</td><td>2607 epoch / 2,038,674 updates</td><td>테스트를 보기 전에 검증 loss로 선택.</td></tr>
+<tr><td>마지막 가중치</td><td>2658 epoch / 2,077,890 updates</td><td>종료 시점 모델. 선택 모델과 별도 보존.</td></tr>
+<tr><td>마지막 학습률 LR</td><td>0.0001238916</td><td>가중치를 한 번에 얼마나 움직일지 정하는 크기.</td></tr>
+<tr><td>종료 이유</td><td>overall_time_cap</td><td>시간상한 종료. 평탄 도달이나 목표 100,000 epoch 완료가 아니다.</td></tr>
+<tr><td>seed</td><td>11 하나</td><td>초기화·배치 추출 난수의 재현 번호. 여러 seed 평균 결과가 아니다.</td></tr>
+</tbody></table>
+<p>update는 미니배치 하나의 오차로 가중치를 한 번 고친 횟수이며, 물리 시뮬레이션의 시간 스텝 수가 아니다.
+epoch는 학습 시간점 데이터 한 바퀴에 해당한다. 초기 가중치와 선택/마지막 모델, Adam·RNG 상태, 학습 이력,
+학습·테스트 데이터, 정규화, 동결 소스, 모든 예측 곡선과 NRMSE·PDF·검증을 함께 보존한다.</p>
+<p>프로그램 종료와 파일 해시가 통과했고 4,788건의 NRMSE를 다시 계산해 일치함을 확인했다.
+이는 보고된 수치와 파일의 무결성 검증이다. 화학 정확도나 물리 유효성의 성공 판정을 대신하지 않는다.</p>
+<p><a href="../run_001/models/selected.pt">선택 모델</a> · <a href="../run_001/models/last.pt">마지막 모델</a> ·
+<a href="../run_001/training.csv">학습 이력</a> · <a href="../run_001/report/loss_and_lr.png">loss/LR 그림</a> ·
+<a href="../run_001/report/coverage.png">테스트 범위 그림</a></p>
+
+<h2>8. 원자료와 문헌</h2>
+<p><a href="../run_001/evaluations/NRMSE.csv">변수별 NRMSE CSV</a> ·
+<a href="../run_001/evaluations/case_summary.csv">조건별 결과 CSV</a> ·
+<a href="../run_001/report/summary.csv">집계표 CSV</a> ·
+<a href="../run_001/report/paper_RMSE_comparison.csv">문헌 RMSE 비교 CSV</a> ·
+<a href="summary.json">이번 정리의 기계 판독 요약</a> ·
+<a href="evidence/completion_monitor.json">완료 검증 기록</a> ·
+<a href="evidence/completion_analysis.json">전체 변수·음수 진단</a> ·
+<a href="verification.json">이 정리의 원자료/링크 검증</a></p>
+<ol><li><a href="https://arxiv.org/html/2204.12670v3">Venturi &amp; Casey, SVD Perspectives for Augmenting DeepONet Flexibility and Interpretability</a> — Section 3.3; Supplement 3; Table S3</li><li><a href="https://github.com/simoneventuri/ROMNet_/blob/07278fc3ffe9eda7be7eed2cf96068f4be3efa51/input/0DReactor/DeepONet/0DReactor_H2_TestCase3/ROMNet_Input.py">Pinned author ROMNet_ H2_TestCase3 configuration</a> — 07278fc3ffe9eda7be7eed2cf96068f4be3efa51</li><li><a href="https://doi.org/10.1016/j.fuel.2024.131212">Kumar &amp; Echekki, Combustion chemistry acceleration with DeepONets</a> — Public preprint Sections 2.2 and 2.3, Figure 1(a)</li><li><a href="https://repository.lib.ncsu.edu/server/api/core/bitstreams/259ce066-870d-4034-8ec7-f140115facfd/content">Anuj Kumar, thesis with detailed React-DeepONet protocol</a> — Chapter 3</li></ol>
+<p><a href="https://arxiv.org/html/2304.12188v1#S2.SS2">React-DeepONet 공개 원문 §2.2</a>에서 다음 시간창으로 예측 상태를 넘기는 절차를 확인할 수 있다.</p>
+<p class="small">이전 완료 결과 게시: <a href="https://github.com/rom-cfd/personal/commit/1a82d1c9c05609fe0f80db614a410eb4ec190787">1a82d1c</a>.
+이번 학습 전 코드·자료 게시: <a href="https://github.com/rom-cfd/personal/commit/64a5e62e7b5b11d2dcac67ec2e31520ce9bad94e">64a5e62</a>.
+완료 결과 게시 SHA는 저장소 밖 publication 기록에 남긴다. 이 정리는 기존 실험 파일을 수정하지 않은 별도 문서다.</p>
+</body></html>
