@@ -1,0 +1,16 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>React-DeepONet 후속 재현 계획</title><style>body{max-width:1000px;margin:36px auto;padding:0 20px;font:17px/1.9 system-ui;color:#183044}table{border-collapse:collapse}td,th{border:1px solid #bccbd8;padding:10px}</style>
+<h1>20 μs 되먹임 React-DeepONet 후속 재현</h1>
+<p>목표는 문헌처럼 현재 예측 상태를 다음 입력으로 사용하면서 보간 정확도를 유지하고, 외삽·초기 구간·전체 반응종의 오차를 줄이는 것이다. 전역 flexDeepONet으로 목표를 바꾸지 않는다.</p>
+<h2>변경하지 않는 것</h2><p>Burke H₂/air 기구, 학습99조건,1ms 궤적, train-only5제곱근 정규화, 대표5변수,42,236파라미터 구조를 유지한다. 학습 중 물리 loss와 추론 중 clipping·원소투영·엔탈피 보정은 넣지 않는다. 원본 데이터와 이전 결과를 보존한다.</p>
+<h2>이번에 비교하는 것</h2>
+<table><tr><th>요소</th><th>비교</th><th>이유</th></tr>
+<tr><td>Operator 학습 간격</td><td>양의0.1–40 μs 균일 vs 고정20 μs</td><td>실제 추론 간격과의 차이를 점검</td></tr>
+<tr><td>작은 학습률</td><td>1e-5 vs3e-6, 이후 완만한 감소</td><td>기존 K5 첫 업데이트 급락 방지</td></tr>
+<tr><td>되먹임 학습 길이</td><td>K1 200회→K2 200회→K5, 마지막 끝점 MSE</td><td>전체 되먹임을 통한 미분은 유지하며 전환을 완만하게 함</td></tr>
+<tr><td>복원 ANN</td><td>같은5→64→64→6 모델에서 균일 시간 vs 절반 초기0.1ms 추출</td><td>정답 대표값을 넣어도 남는 복원 오차를 개선</td></tr></table>
+<p>4후보를 각각600추가업데이트 진단한 뒤 간격별 하나를 검증으로 골라 마지막 가중치·Adam·RNG를 정확히 이어 각각 총20,000추가업데이트를 목표로 한다. 시작은 기존 사전학습72,500회 가중치다. 후보가 실패하거나 시간이 부족하면 그 사실을 그대로 기록한다. 가장 좋은 선택 가중치와 literal 마지막 가중치를 모두 평가한다.</p>
+<h2>검증과 독립 테스트</h2><p>검증은 기존 보간12+외삽12조건이다. Operator 선택에서는 대표5변수, 최종 조합 선택에서는 전체9변수의 전체1ms+초기0.1ms 동시 통과를 두 영역에 균형 있게 우선한다. 새 독립 보간32+외삽32조건은 기존 조건·작은 소프트웨어검증 조건과 겹치지 않으며 선택을 동결한 뒤에만 모델 평가에 사용한다.</p>
+<p>같은64조건에서 기존 baseline과 새 모델을 모두 평가하고, 두 모델이 공통으로 raw 완주한 동일 IC/변수에서 NRMSE를 비교한다. 이전32조건의 성적과 새64조건의 성적을 표본 차이 없이 직접 개선량으로 부르지 않는다. NRMSE는 RMSE(Cantera,NN)/RMS(Cantera)인 비율이다.</p>
+<h2>시간·보고 원칙</h2><p>CPU2스레드, 순차 실행, 전체6시간 상한이다. 소프트웨어검사·준비 비용도 차감한다. 보고용1800초와 복원ANN용600초를 남긴다. 목표 업데이트 또는 시간상한 종료를 평탄 도달로 부르지 않는다. 실제 끝점의 유효성과 보조 곡선의 음수·정확도를 분리하며 수치 완주를 화학 정확도 성공으로 부르지 않는다.</p>
+<p>학습 간격 고정·K 점진 전환·작은 LR·초기 집중 추출은 선언한 안정화 변경이다. 원저자 비공개 융합식과 정확한20반응 파일이 없어 원저자 코드·가중치의 정확한 복제라고 주장하지 않는다. 문헌의 MAE와 우리 NRMSE는 다른 지표다.</p>
+<p><a href="config.json">설정</a> · <a href="preflight/preflight.json">사전 검사</a> · <a href="preflight/diagnosis.json">검증 조건의 기존 오차 분해</a> · <a href="../../react_stepper_reproduction/summary_001/REPORT.html">기존 되먹임 기준선</a></p></html>

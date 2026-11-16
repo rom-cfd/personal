@@ -1,0 +1,53 @@
+{
+  "seed": 11,
+  "threads": 2,
+  "fixture": false,
+  "total_budget_seconds": 21600,
+  "evaluation_reserve_seconds": 1800,
+  "reconstruction_reserve_seconds": 600,
+  "pilot_budget_seconds": 1800,
+  "batch_size": 20000,
+  "probe_updates": 600,
+  "curriculum_stage_updates": 200,
+  "target_new_updates": 20000,
+  "validation_every": 1000,
+  "history_every": 50,
+  "compile_operator": true,
+  "reconstruction_updates": 20000,
+  "reconstruction_batch": 4096,
+  "reconstruction_validation_every": 1000,
+  "reconstruction_lr": 0.0001,
+  "specs": [
+    {
+      "name": "uniform_lr1e5",
+      "mode": "uniform",
+      "lr": 1e-05
+    },
+    {
+      "name": "uniform_lr3e6",
+      "mode": "uniform",
+      "lr": 3e-06
+    },
+    {
+      "name": "fixed20_lr1e5",
+      "mode": "fixed20",
+      "lr": 1e-05
+    },
+    {
+      "name": "fixed20_lr3e6",
+      "mode": "fixed20",
+      "lr": 3e-06
+    }
+  ],
+  "primary_step_us": 20,
+  "secondary_step_us": 2,
+  "train_reference_dt": 1e-07,
+  "training_change": "Same endpoint MSE and full BPTT, curriculum K1->K2->K5; compare fixed20us with positive uniform0.1..40us. No tau0 samples.",
+  "reconstruction_change": "Same64x64 tanh ANN and MSE; compare uniform time sampling with half uniform/half initial0.1ms.",
+  "sources": "Kumar-Echekki Fuel365(2024)131212 and Kumar thesis chapter3; declared stabilization changes, not exact author replay",
+  "limits": [
+    "Public Burke10species25Cantera entries differs from unavailable author20-reaction file.",
+    "Three-way branch/trunk/ParamNet product remains an independent reconstruction assumption.",
+    "No soft physics loss, training repair, inference clipping, element projection or enthalpy repair."
+  ]
+}
