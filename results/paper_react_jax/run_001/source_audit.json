@@ -1,0 +1,92 @@
+{
+  "status": "protocol_fixed_with_declared_fidelity_limits",
+  "source_review_date": "2026-11-25 Asia/Seoul",
+  "primary_target": {
+    "url": "https://arxiv.org/html/2304.12188v1",
+    "sections": [
+      "2.1-2.3",
+      "Table 1 H2 column",
+      "Figures 3a and 4"
+    ],
+    "scope": "2023 conference protocol, not the changed 2024 final journal settings",
+    "native_framework": "JAX",
+    "reported_operator": "branch/trunk dot product + ShiftNet",
+    "training_updates": 200000,
+    "optimizer": "Adam .01 fixed",
+    "dt_s": 2e-05,
+    "horizon_s": 0.0005
+  },
+  "detailed_source": {
+    "url": "https://repository.lib.ncsu.edu/server/api/core/bitstreams/259ce066-870d-4034-8ec7-f140115facfd/content",
+    "sections": [
+      "3.2.1",
+      "3.2.4",
+      "3.3.1",
+      "Table 3.1"
+    ],
+    "confirmed": [
+      "modified MLP for sub-networks",
+      "additive log-time shift",
+      "equal dot-feature segments for representative outputs",
+      "native JAX",
+      "fifth-root of temperature and species"
+    ],
+    "not_mixed_into_2023_protocol": [
+      "ParamNet",
+      "Adamax decay",
+      "K5 endpoint refinement",
+      "40us training window"
+    ]
+  },
+  "credited_base_code": {
+    "repository": "PredictiveIntelligenceLab/Long-time-Integration-PI-DeepONets",
+    "commit": "b6ec2cef29cd62da5e7aef34f43ebd0a2ddcc4ba",
+    "path": "stiff/PI_DeepONet_stiff.ipynb",
+    "reference_fixture": "author modified_MLP forward, input-gradient and initialization all agree exactly on fixed float32 controls"
+  },
+  "official_followup_release": {
+    "paper": "https://doi.org/10.1017/dce.2025.10012",
+    "repository": "TEchekki/Physics-Constrained-Machine-Learning-for-Reduced-Composition-Space-Chemical-Kinetics",
+    "commit": "0b1d28d58569d5fb44c8e5b9d02ee2aa62f53c5d",
+    "released_files": [
+      "CorrelationNet.ipynb",
+      "LICENSE",
+      "README.md"
+    ],
+    "contains_react_operator": false,
+    "contains_training_data": false,
+    "notebook_subject": "methane, not hydrogen; therefore not silently substituted"
+  },
+  "unresolved": [
+    "Exact Kumar code, weights and random seeds were not located",
+    "Exact author Burke mechanism file was not located: use pinned public reduction and disclose 25 rate entries /22 equations",
+    "2023 hidden activation, detailed shift-time units and trajectory split are completed from the detailed source or explicit fixed conventions; they are not recovered author code",
+    "Author reported normalized MAE aggregation is not fully specified: report our arithmetic mean and NRMSE separately"
+  ],
+  "excluded_from_this_baseline": [
+    "custom LR search",
+    "K curriculum",
+    "ParamNet fusion guess",
+    "physics loss",
+    "clipping or element/enthalpy postprocessing",
+    "operator/CNET combination selection",
+    "global initial-state-to-absolute-time flexDeepONet substitution"
+  ],
+  "ann_control": {
+    "repository": "tianhanz/DNN-Models-for-Chemical-Kinetics",
+    "commit": "bc07e5a210ba357b8a5350b460a751a68a002174",
+    "method": "unmodified simulateData + released weights; inference reproduction, not new author training",
+    "dt_s": 1e-06,
+    "steps": 500,
+    "primary_642_model_passed": 6,
+    "primary_cases": 6,
+    "secondary_528_model_passed": 3
+  },
+  "other_inspected_candidate": {
+    "repository": "PkuLNJ/ReaNO_CaseA_reproduction",
+    "commit": "6d5d84a0397ce39244739277af3d0f94065b29e3",
+    "paper": "https://doi.org/10.1016/j.proci.2026.106772",
+    "not_selected_reason": "Published Case A is planar-flame snapshot chemistry at 1e-8s; different benchmark, not the requested 0D H2 ignition paper baseline"
+  },
+  "success_rule": "Software checks and finite curves do not certify chemistry reproduction. Report literal final and validation-selected weights, raw endpoint admissibility, dense positivity, full+early joint5, and normalized-root MAE separately."
+}
